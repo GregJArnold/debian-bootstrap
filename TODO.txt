@@ -2,17 +2,6 @@ Git:
 git config --global alias.dog 'log --all --decorate --oneline --graph'
 git config --global alias.mog 'log --merges --decorate --oneline --graph'
 
-Vim:
-create vimrc
-download pathogen:
-mkdir -p ~/.vim/autoload ~/.vim/bundle && \
-wget -O ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim
-
-download typescript:
-git clone https://github.com/leafgarland/typescript-vim.git ~/git/typescript-vim
-ln -s ~/git/typescript-vim ~/.vim/bundle/typescript-vim
-download localvimrc
-
 modify sudoers to not ask for a password
 set up ssh multiplexing
 generate SSH keys
