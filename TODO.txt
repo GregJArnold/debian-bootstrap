@@ -1,0 +1,49 @@
+install linux
+install vim aptitude git python3-pip
+
+Git:
+git config --global alias.dog 'log --all --decorate --oneline --graph'
+git config --global alias.mog 'log --merges --decorate --oneline --graph'
+
+Vim:
+create vimrc
+download pathogen:
+mkdir -p ~/.vim/autoload ~/.vim/bundle && \
+wget -O ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim
+
+download typescript:
+git clone https://github.com/leafgarland/typescript-vim.git ~/git/typescript-vim
+ln -s ~/git/typescript-vim ~/.vim/bundle/typescript-vim
+download localvimrc
+
+purge vim-tiny and the evils of nano
+modify sudoers to not ask for a password
+set up ssh multiplexing
+generate SSH keys
+upload them to whereever
+
+FireFox:
+DDG
+Multi Account Container
+Facebook Container
+React Dev Tools
+Redux Dev Tools
+
+install slack
+
+Install Node PPA
+clone repos
+git config remote.origin.prune true
+git config remote.origin.tagOpt --tags
+npm i
+install redis
+install mongod
+
+Download the damn database
+Extract and set permissions.
+
+pip3 install awsebcli
+
+Kerberos:
+sudo apt-get install krb5-user
+empty creds.  allow them.
