@@ -1,0 +1,8 @@
+Key things.
+
+1. DNS must be correct-ish.
+2. You need a keytab on the CLIENT with nfs/ and host/ keys.
+3. Install nfs-common
+4. Edit /etc/default/nfs-common and enable NEED_IDMAPD and NEED_GSSD, then restart nfs-client.
+5. Put the entry in /etc/fstab with rw,user,sec=krb5p,noauto options
+
