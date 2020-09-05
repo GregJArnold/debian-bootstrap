@@ -7,7 +7,7 @@ All of the things to set up a freshly-installed Debian system
 ```
 mkdir ~/.ssh
 chmod 600 ~/.ssh
-KEYNAME="$(whoami)+github-$(date +%Y%m%d)@$(hostname -f)" ssh-keygen -t ed25519 -C $KEYNAME -f "$HOME/.ssh/$KEYNAME-2"
+KEYNAME="$(whoami)+github-$(date +%Y%m%d)@$(hostname -f)" ssh-keygen -t ed25519 -C $KEYNAME -f "$HOME/.ssh/$KEYNAME"
 ```
 
 Upload this to GitHub - you ***are*** using a passphrase, and separate keys for each machine, right?
