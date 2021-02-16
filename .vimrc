@@ -12,6 +12,9 @@
 :execute pathogen#infect()
 :let g:localvimrc_persistent=1
 :autocmd BufEnter * set mouse=h
+:let g:prettier#autoformat_require_pragma = 0
+:let g:prettier#autoformat_config_present = 1
+:let g:prettier#config#tab_width = 2
 
 " If you *really* want tabs expanded into spaces, I urge you to re-consider your life choices.  Strongly.
 " But, if you need them for whatever strange reason, you can uncomment these lines.
