@@ -1,6 +1,8 @@
 Git:
 git config --global alias.dog 'log --all --decorate --oneline --graph'
 git config --global alias.mog 'log --merges --decorate --oneline --graph'
+git config --global grep.lineNumber true
+git config --global pull.rebase true
 
 modify sudoers to not ask for a password
 set up ssh multiplexing
