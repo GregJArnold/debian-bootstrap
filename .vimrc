@@ -12,6 +12,7 @@
 :execute pathogen#infect()
 :let g:localvimrc_persistent=1
 :autocmd BufEnter * set mouse=h
+:autocmd FileType yaml set et
 :let g:prettier#autoformat_require_pragma = 0
 :let g:prettier#autoformat_config_present = 1
 :let g:prettier#config#tab_width = 2
