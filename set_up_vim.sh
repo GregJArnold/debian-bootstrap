@@ -12,6 +12,7 @@ ln -s "${HOME}/git/typescript-vim" ~/.vim/bundle/typescript-vim
 
 git clone https://github.com/prettier/vim-prettier ~/git/vim-prettier
 ln -s "${HOME}/git/vim-prettier" ~/.vim/bundle/vim-prettier
+sudo npm i -g prettier
 
 wget -O ~/Downloads/localvimrc.vmb https://www.vim.org/scripts/download_script.php?src_id=27167
 
