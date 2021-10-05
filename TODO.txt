@@ -30,3 +30,5 @@ Download the damn database
 Extract and set permissions.
 
 pip3 install awsebcli
+
+install thefuck
