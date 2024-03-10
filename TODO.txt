@@ -1,10 +1,3 @@
-Git:
-git config --global alias.dog 'log --all --decorate --oneline --graph'
-git config --global alias.mog 'log --merges --decorate --oneline --graph'
-git config --global grep.lineNumber true
-git config --global http.emptyAuth true
-git config --global pull.ff only
-
 modify sudoers to not ask for a password
 set up ssh multiplexing
 generate SSH keys
@@ -17,18 +10,12 @@ Facebook Container
 React Dev Tools
 Redux Dev Tools
 
-install slack
-
-clone repos
+Upon cloning repos:
 git config remote.origin.prune true
 git config remote.origin.tagOpt --tags
-npm i
-install redis
-install mongod
 
-Download the damn database
-Extract and set permissions.
-
-pip3 install awsebcli
-
+Others:
 install thefuck
+
+General:
+Convert this to Ansible?
