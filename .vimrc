@@ -5,14 +5,20 @@
 :set title
 :set noswapfile
 :set mouse=h
+:autocmd BufEnter * set mouse=h
+:autocmd FileType yaml set et
+
+" Nice shortcuts for split-window mode
 :map <C-Left> <C-w><Left>
 :map <C-Right> <C-w><Right>
 :map <C-Down> <C-w><Down>
 :map <C-Up> <C-w><Up>
+
+" `s` is pretty useless - remap it
+:map s c$
+
 :execute pathogen#infect()
 :let g:localvimrc_persistent=1
-:autocmd BufEnter * set mouse=h
-:autocmd FileType yaml set et
 :let g:prettier#autoformat_require_pragma = 0
 :let g:prettier#autoformat_config_present = 1
 :let g:prettier#config#tab_width = 2
