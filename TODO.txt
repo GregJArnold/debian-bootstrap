@@ -1,5 +1,4 @@
 modify sudoers to not ask for a password
-set up ssh multiplexing
 generate SSH keys
 upload them to whereever
 
