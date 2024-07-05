@@ -1,4 +1,3 @@
-modify sudoers to not ask for a password
 generate SSH keys
 upload them to whereever
 
@@ -16,5 +15,6 @@ git config remote.origin.tagOpt --tags
 Others:
 install thefuck
 
-General:
-Convert this to Ansible?
+Ansible:
+- Fetch the PG unixauth password from ... somewhere? and put it in the file.
+- Convert the rest to Ansible
