@@ -1,0 +1,10 @@
+---
+
+- name: Builds a VM from a fresh Debian install
+  hosts: all
+
+  roles:
+    - debian.base
+    - debian.sudoers
+    - vim.setup
+    - debian.kerberos

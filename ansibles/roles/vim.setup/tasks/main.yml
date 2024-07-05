@@ -1,0 +1,72 @@
+# vim:ft=ansible:
+---
+
+- name: Install vim
+  become: true
+  ansible.builtin.apt:
+    name: vim
+
+- name: Purging nano
+  become: true
+  ansible.builtin.apt:
+    name: nano
+    state: absent
+    purge: true
+
+- name: Purging vim-tiny
+  become: true
+  ansible.builtin.apt:
+    name: vim-tiny
+    state: absent
+    purge: true
+
+- name: Installing vimrc
+  ansible.builtin.file:
+    src: ~/git/debian-bootstrap/.vimrc
+    dest: ~/.vimrc
+    state: link
+
+- name: Creating vim autoload directory
+  ansible.builtin.file:
+    path: ~/.vim/autoload
+    state: directory
+
+- name: Creating vim bundle directory
+  ansible.builtin.file:
+    path: ~/.vim/bundle
+    state: directory
+
+- name: Downloading Pathogen
+  ansible.builtin.get_url:
+    url: http://tpo.pe/pathogen.vim
+    dest: ~/.vim/autoload
+
+- name: Pulling typescript-vim
+  ansible.builtin.git:
+    repo: https://github.com/leafgarland/typescript-vim.git
+    dest: ~/git/typescript-vim
+
+- name: Linking typescript-vim
+  ansible.builtin.file:
+    src: ~/git/typescript-vim
+    dest: ~/.vim/bundle/typescript-vim
+    state: link
+
+- name: Pulling vim-prettier
+  ansible.builtin.git:
+    repo: https://github.com/prettier/vim-prettier
+    dest: ~/git/vim-prettier
+
+- name: Linking vim-prettier
+  ansible.builtin.file:
+    src: ~/git/vim-prettier
+    dest: ~/.vim/bundle/vim-prettier
+    state: link
+
+- name: Downloading localvimrc
+  ansible.builtin.get_url:
+    url: https://www.vim.org/scripts/download_script.php?src_id=27167
+    dest: ~/
+
+- name: Installing localvimrc
+  ansible.builtin.shell: vim -c 'so %' -c 'q' ~/Downloads/localvimrc.vmb

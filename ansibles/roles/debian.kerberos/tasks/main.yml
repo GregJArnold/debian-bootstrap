@@ -1,0 +1,81 @@
+# vim:ft=ansible:
+---
+
+- name: Install Kerberos/PAM packages
+  become: true
+  ansible.builtin.apt:
+    pkg:
+      - krb5-user
+      - libnss-pgsql2
+      - libpam-krb5
+    install_recommends: no
+
+- name: Install libpam-pgsql
+  become: true
+  ansible.builtin.apt:
+    deb: http://http.us.debian.org/debian/pool/main/p/pam-pgsql/libpam-pgsql_0.7.3.2-1+b1_amd64.deb
+
+- name: Install config files
+  become: true
+  ansible.builtin.copy:
+    src: ./config/
+    dest: /etc
+    mode: '0644'
+    owner: root
+    group: root
+
+- name: Set up nsswitch passwd
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/nsswitch.conf
+    state: present
+    regexp: '^(\s*passwd:)(?!.* pgsql)(.*)$'
+    line: '\1\2 pgsql'
+    backrefs: yes
+
+- name: Set up nsswitch group
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/nsswitch.conf
+    state: present
+    regexp: '^(\s*group:)(?!.* pgsql)(.*)$'
+    line: '\1\2 pgsql'
+    backrefs: yes
+    backup: yes
+
+- name: Add linuxadmin to sudoers
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%linuxadmin\s+ALL='
+    insertafter: '^%sudo\s+ALL='
+    line: '%linuxadmin  ALL=(ALL:ALL) NOPASSWD:ALL'
+    validate: /usr/sbin/visudo -cf %s
+
+- name: Install PAM config file
+  become: true
+  ansible.builtin.copy:
+    src: ./pgsql
+    dest: /usr/share/pam-configs
+    mode: '0644'
+    owner: root
+    group: root
+
+- name: Update PAM config
+  become: true
+  ansible.builtin.shell: pam-auth-update --package
+
+- name: Enable GSSAPI Authentication
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: 'GSSAPIAuthentication'
+    line: GSSAPIAuthentication yes
+    insertbefore: 'GSSAPI'
+
+- name: Restart sshd
+  become: true
+  ansible.builtin.service:
+    name: sshd
+    state: restarted
