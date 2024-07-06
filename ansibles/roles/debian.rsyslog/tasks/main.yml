@@ -1,0 +1,29 @@
+- name: Install RELP module
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg: rsyslog-relp
+
+- name: Create the rsyslog temp directory
+  become: true
+  ansible.builtin.file:
+    path: /rsyslog
+    state: directory
+    mode: '0750'
+    owner: root
+    group: root
+
+- name: Install rsyslog.conf
+  become: true
+  ansible.builtin.template:
+    src: 'templates/rsyslog.conf.j2'
+    dest: /etc/rsyslog.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Restart rsyslog
+  become: true
+  ansible.builtin.service:
+    name: rsyslog
+    state: restarted
