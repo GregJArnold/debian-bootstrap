@@ -1,0 +1,8 @@
+---
+
+- import_playbook: build-guest-vm.yml
+
+- name: Sets up the VM to be a guest nameserver
+  hosts: all
+  roles:
+    - bind.resolve
