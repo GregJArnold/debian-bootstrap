@@ -1,0 +1,30 @@
+- name: Install ntpsec
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg: ntpsec
+
+- name: Remove other time-sync packages
+  become: true
+  ansible.builtin.apt:
+    purge: true
+    state: absent
+    name:
+      - chrony
+      - ntp
+      - systemd-timesyncd
+
+- name: Install ntpsec.conf
+  become: true
+  ansible.builtin.template:
+    src: 'templates/ntp.conf.j2'
+    dest: /etc/ntpsec/ntp.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Restart ntpsec
+  become: true
+  ansible.builtin.service:
+    name: ntpsec
+    state: restarted
