@@ -7,6 +7,7 @@
 :set mouse=h
 :autocmd BufEnter * set mouse=h
 :autocmd FileType yaml set et
+:autocmd BufEnter * :syntax sync fromstart
 
 " Nice shortcuts for split-window mode
 :map <C-Left> <C-w><Left>
