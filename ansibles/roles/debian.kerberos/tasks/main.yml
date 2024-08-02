@@ -17,12 +17,15 @@
 
 - name: Install config files
   become: true
-  ansible.builtin.copy:
-    src: ./config/
-    dest: /etc
-    mode: '0644'
+  ansible.builtin.template:
+    src: "templates/{{ item }}.j2"
+    dest: "/etc/{{ item }}"
     owner: root
     group: root
+    mode: '0644'
+  loop:
+    - nss-pgsql.conf
+    - pam_pgsql.conf
 
 - name: Set up nsswitch passwd
   become: true

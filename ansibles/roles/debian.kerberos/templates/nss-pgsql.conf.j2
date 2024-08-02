@@ -1,4 +1,4 @@
-connectionstring        = hostaddr=192.168.2.4 sslmode=disable dbname=auth user=unixauth password=PASSWORD connect_timeout=1
+connectionstring        = hostaddr={{ auth.host }} sslmode=disable dbname={{ auth.dbname }} user={{ auth.user }} password={{ auth.password }} connect_timeout=1
 
 # you can use anything postgres accepts as table expression
 
