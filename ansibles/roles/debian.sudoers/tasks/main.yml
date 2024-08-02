@@ -1,3 +1,9 @@
+- name: Install sudo
+  become: true
+  ansible.builtin.apt:
+    pkg: sudo
+    install_recommends: false
+
 - name: Make sudoers not prompt for a password
   become: true
   ansible.builtin.lineinfile:
