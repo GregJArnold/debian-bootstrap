@@ -18,3 +18,4 @@
       - aptitude
       - git
       - dnsutils
+      - net-tools
