@@ -1,0 +1,40 @@
+- name: Install postgres
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg: postgresql
+
+#- name: Install ntpsec.conf
+#  become: true
+#  ansible.builtin.template:
+#    src: 'templates/ntp.conf.j2'
+#    dest: /etc/ntpsec/ntp.conf
+#    owner: root
+#    group: root
+#    mode: '0644'
+
+- name: Listen on all addresses
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/15/main/postgresql.conf
+    state: present
+    regexp: 'listen_addresses\s*='
+    line: "listen_addresses = '*'   # what IP address(es) to listen on;"
+  notify: "debian.postgres : Restart postgresql"
+
+- name: Add Kerberos keytab
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/15/main/postgresql.conf
+    state: present
+    regexp: 'krb_server_keyfile\s*='
+    line: "krb_server_keyfile = 'FILE:/etc/postgresql/postgres.keytab'"
+  notify: "debian.postgres : Restart postgresql"
+
+- name: Allow Kerberos auth
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/15/main/pg_hba.conf
+    state: present
+    line: "host    all             all             samenet                 gss include_realm=0 krb_realm=OH.QWOP.NET"
+  notify: "debian.postgres : Restart postgresql"
