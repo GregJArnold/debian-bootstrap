@@ -12,6 +12,7 @@
     mode: '0750'
     owner: root
     group: root
+  notify: "debian.rsyslog : Restart rsyslog"
 
 - name: Install rsyslog.conf
   become: true
@@ -21,9 +22,4 @@
     owner: root
     group: root
     mode: '0644'
-
-- name: Restart rsyslog
-  become: true
-  ansible.builtin.service:
-    name: rsyslog
-    state: restarted
+  notify: "debian.rsyslog : Restart rsyslog"
