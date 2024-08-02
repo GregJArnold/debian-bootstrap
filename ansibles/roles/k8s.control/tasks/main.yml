@@ -1,0 +1,20 @@
+# vim:ft=ansible:
+---
+
+- name: Install kubectl
+  become: true
+  ansible.builtin.apt:
+    pkg:
+      - kubectl
+    state: present
+
+- name: Debug join command
+  ansible.builtin.debug:
+    var: hostvars[groups["control_plane"][0]].control_join_command
+
+- name: join cluster
+  become: true
+  ansible.builtin.shell: "{{ hostvars[groups['control_plane'][0]].control_join_command }} >> control_joined.txt"
+  args:
+    chdir: $HOME
+    creates: control_joined.txt

@@ -1,0 +1,10 @@
+# vim:ft=ansible:
+---
+
+- name: join cluster
+  become: true
+  ansible.builtin.shell: "{{ hostvars[groups['control_plane'][0]].join_command }} >> node_joined.txt"
+  args:
+    chdir: $HOME
+    creates: node_joined.txt
+

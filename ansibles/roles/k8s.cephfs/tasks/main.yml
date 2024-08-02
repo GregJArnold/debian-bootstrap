@@ -1,0 +1,71 @@
+# vim:ft=ansible:
+---
+
+- name: Copy config files
+  ansible.builtin.copy:
+    src: ./
+    dest: ~/
+    mode: '0644'
+
+- name: Build CephFS CSI config file
+  ansible.builtin.template:
+    src: templates/ceph-csi-config.yml.j2
+    dest: ~/ceph-csi-config.yml
+    mode: '0644'
+
+- name: Build CephFS SC config file
+  ansible.builtin.template:
+    src: templates/cephfs-storage-class.yml.j2
+    dest: ~/cephfs-storage-class.yml
+    mode: '0644'
+
+- name: Clone CephFS CSI repo
+  ansible.builtin.git:
+    repo: https://github.com/ceph/ceph-csi.git
+    dest: ~/git/ceph-csi
+    depth: 1
+
+- name: Apply CephFS CSI config file
+  ansible.builtin.shell: kubectl apply -f ceph-csi-config.yml >> ceph-csi-config.txt
+  args:
+    chdir: $HOME
+    creates: ceph-csi-config.txt
+
+- name: Apply CephFS SC config file
+  ansible.builtin.shell: kubectl apply -f cephfs-storage-class.yml >> cephfs-storage-class.txt
+  args:
+    chdir: $HOME
+    creates: cephfs-storage-class.txt
+
+- name: Create CephFS namespace
+  ansible.builtin.shell: kubectl create namespace ceph-csi-cephfs >> ceph-csi-cephfs.txt
+  args:
+    chdir: $HOME
+    creates: ceph-csi-cephfs.txt
+
+- name: Apply CephFS CSI configs
+  ansible.builtin.shell:
+    cmd: "kubectl apply -f {{ item.path }}{{ item.name }}.yaml >> {{ item.name }}.txt"
+  args:
+    chdir: $HOME
+    creates: "{{ item.name }}.txt"
+  loop:
+    - { path: "git/ceph-csi/deploy/cephfs/kubernetes/", name: "csidriver" }
+    - { path: "git/ceph-csi/deploy/cephfs/kubernetes/", name: "csi-provisioner-rbac" }
+    - { path: "git/ceph-csi/deploy/cephfs/kubernetes/", name: "csi-nodeplugin-rbac" }
+    - { path: "git/ceph-csi/deploy/", name: "ceph-conf" }
+    - { path: "git/ceph-csi/deploy/cephfs/kubernetes/", name: "csi-cephfsplugin-provisioner" }
+    - { path: "git/ceph-csi/deploy/cephfs/kubernetes/", name: "csi-cephfsplugin" }
+
+- name: Apply CephFS config file
+  ansible.builtin.shell: kubectl apply -f ceph-csi-encryption-kms-config.yml >> ceph-csi-encryption-kms-config.txt
+  args:
+    chdir: $HOME
+    creates: ceph-csi-encryption-kms-config.txt
+
+- name: Add CephFS Secret
+  ansible.builtin.shell:
+    cmd: "kubectl --namespace ceph-csi-cephfs create secret generic csi-cephfs-secret --from-literal=adminID=admin --from-literal=adminKey={{ cephfs.adminKey }} >> ceph-admin-secret.txt"
+  args:
+    chdir: $HOME
+    creates: ceph-admin-secret.txt

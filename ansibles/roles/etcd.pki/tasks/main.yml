@@ -1,0 +1,84 @@
+- name: Install cfssl
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+      - golang-cfssl
+
+- name: Create PKI directory
+  ansible.builtin.file:
+    path: ~/etcd-pki/cert
+    state: directory
+    mode: '0700'
+
+- name: Install config files
+  ansible.builtin.copy:
+    src: .
+    dest: ~/etcd-pki
+    mode: '0644'
+
+- name: Install server config file
+  ansible.builtin.template:
+    src: 'templates/server.json.j2'
+    dest: ~/etcd-pki/server.json
+    mode: '0644'
+
+- name: Init PKI
+  ansible.builtin.shell:
+    chdir: ~/etcd-pki
+    cmd: cfssl gencert -initca ca.json | cfssljson -bare cert/ca
+    creates: ~/etcd-pki/cert/ca.pem
+
+- name: Genecarte client cert
+  ansible.builtin.shell:
+    chdir: ~/etcd-pki
+    cmd: cfssl gencert -ca=cert/ca.pem -ca-key=cert/ca-key.pem -config=config.json -profile=client client.json | cfssljson -bare cert/client
+    creates: ~/etcd-pki/cert/client.pem
+
+- name: Genecarte server cert
+  ansible.builtin.shell:
+    chdir: ~/etcd-pki
+    cmd: cfssl gencert -ca=cert/ca.pem -ca-key=cert/ca-key.pem -config=config.json -profile=server server.json | cfssljson -bare cert/server
+    creates: ~/etcd-pki/cert/server.pem
+
+- name: Genecarte peer certs
+  ansible.builtin.shell:
+    chdir: ~/etcd-pki
+    cmd: 'cfssl gencert -ca=cert/ca.pem -ca-key=cert/ca-key.pem -config=config.json -profile=peer -hostname="{{ hostvars[item].ansible_fqdn }},{{ hostvars[item].ansible_host }}" peer.json | cfssljson -bare cert/{{ item }}-peer'
+    creates: '~/etcd-pki/cert/{{ item }}-peer.pem'
+  loop: '{{ groups["etcd"] }}'
+
+- name: Find CSRs
+  ansible.builtin.find:
+    paths: ~/etcd-pki/cert
+    patterns: "*.csr"
+  register: csrs
+
+- name: Remove CSRs
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ csrs.files }}"
+
+- name: Create temp directory
+  delegate_to: localhost
+  ansible.builtin.tempfile:
+    state: directory
+  register: tmp
+
+- name: Find certs
+  ansible.builtin.find:
+    paths: ~/etcd-pki/cert
+    patterns: "*.pem"
+  register: certs
+
+- name: Fetch certs
+  ansible.builtin.fetch:
+    dest: '{{ tmp.path }}/'
+    src: '{{ item.path }}'
+    flat: true
+  with_items: '{{ certs.files }}'
+
+- name: Debug
+  ansible.builtin.debug:
+    var: tmp

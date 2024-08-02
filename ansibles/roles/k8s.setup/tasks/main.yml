@@ -1,0 +1,59 @@
+# vim:ft=ansible:
+---
+
+- name: create Docker config directory
+  become: true
+  ansible.builtin.file: path=/etc/docker state=directory
+
+- name: changing Docker to systemd driver
+  become: true
+  ansible.builtin.copy:
+    dest: "/etc/docker/daemon.json"
+    content: |
+      {
+      "exec-opts": ["native.cgroupdriver=systemd"]
+      }
+
+- name: install Docker
+  become: true
+  ansible.builtin.apt:
+    name: docker.io
+    state: present
+    update_cache: true
+
+- name: add Kubernetes APT Key
+  become: true
+  ansible.builtin.get_url:
+    url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
+    dest: /etc/apt/keyrings/kubernetes.asc
+
+- name: Add Kubernetes APT Repo
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes.asc] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /"
+    state: present
+    filename: k8s
+
+- name: Install Kubernetes packages
+  become: true
+  ansible.builtin.apt:
+    pkg:
+      - kubelet
+      - kubeadm
+    state: present
+    update_cache: true
+
+- name: Configure containerd
+  become: true
+  ansible.builtin.copy:
+    src: ./config.toml
+    dest: /etc/containerd
+    mode: '0644'
+    owner: root
+    group: root
+
+- name: Restart containerd
+  become: true
+  ansible.builtin.service:
+    name: containerd
+    state: restarted

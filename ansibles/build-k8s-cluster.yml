@@ -1,0 +1,50 @@
+---
+
+- name: Set up VM from a fresh Debian install
+  hosts: all
+  roles:
+    - debian.base
+    - role: debian.sudoers
+      when: inventory_hostname not in groups["etcd"]
+    - debian.notime
+    - { role: "debian.rsyslog", rsyslog_host: "192.168.2.4" }
+    - debs.setup
+    - vim.setup
+ 
+- name: Install Kubernetes packages
+  hosts:
+    - control_plane
+    - workers
+  roles:
+    - k8s.setup
+
+- name: Build PKI infrastructure
+  hosts: control_plane
+  roles:
+    - role: "etcd.pki"
+      when: inventory_hostname == groups["control_plane"][0]
+
+- name: Set up etcd cluster
+  hosts: etcd
+  roles:
+    - etcd.cluster
+    - keepalived.cluster
+
+- name: Set up Control Plane
+  hosts: control_plane
+  roles:
+    - role: k8s.init
+      when: inventory_hostname == groups["control_plane"][0]
+    - role: k8s.control
+      when: inventory_hostname != groups["control_plane"][0]
+
+- name: Set up CephFS storage
+  hosts: control_plane
+  roles:
+    - role: k8s.cephfs
+      when: inventory_hostname == groups["control_plane"][0]
+
+- name: Join Workers to Control Plane
+  hosts: workers
+  roles:
+    - k8s.join

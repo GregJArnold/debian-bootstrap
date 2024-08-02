@@ -1,0 +1,46 @@
+- name: Install packages
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+      - keepalived
+      - haproxy
+
+- name: Install keepalived config file
+  become: true
+  ansible.builtin.template:
+    src: 'templates/keepalived.conf.j2'
+    dest: /etc/keepalived/keepalived.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Install haproxy config file
+  become: true
+  ansible.builtin.template:
+    src: 'templates/haproxy.cfg.j2'
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Install check script
+  become: true
+  ansible.builtin.copy:
+    src: ./check_apiserver.sh
+    dest: /etc/keepalived
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Restart keepalived
+  become: true
+  ansible.builtin.service:
+    name: keepalived
+    state: restarted
+
+- name: Restart haproxy
+  become: true
+  ansible.builtin.service:
+    name: haproxy
+    state: restarted
