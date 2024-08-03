@@ -4,15 +4,6 @@
     install_recommends: no
     pkg: postgresql
 
-#- name: Install ntpsec.conf
-#  become: true
-#  ansible.builtin.template:
-#    src: 'templates/ntp.conf.j2'
-#    dest: /etc/ntpsec/ntp.conf
-#    owner: root
-#    group: root
-#    mode: '0644'
-
 - name: Listen on all addresses
   become: true
   ansible.builtin.lineinfile:
@@ -36,5 +27,13 @@
   ansible.builtin.lineinfile:
     path: /etc/postgresql/15/main/pg_hba.conf
     state: present
-    line: "host    all             all             samenet                 gss include_realm=0 krb_realm=OH.QWOP.NET"
+    line: "hostgssenc      all     all             samenet                 gss include_realm=0 krb_realm=OH.QWOP.NET"
+  notify: "debian.postgres : Restart postgresql"
+
+- name: Allow non-Kerberos auth
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/15/main/pg_hba.conf
+    state: present
+    line: "hostnogssenc    all     all             samenet                 scram-sha-256"
   notify: "debian.postgres : Restart postgresql"
