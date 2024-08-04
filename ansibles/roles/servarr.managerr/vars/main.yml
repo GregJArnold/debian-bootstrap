@@ -1,0 +1,5 @@
+uService: "{{ service[0] | upper }}{{ service[1:] }}"
+dbUser: "{{ servarr[service].database.user | default(servarr.database.user) }}"
+dbPass: "{{ servarr[service].database.password | default(servarr.database.password) }}"
+dbPort: "{{ servarr[service].database.port | default(servarr.database.port) }}"
+dbHost: "{{ servarr[service].database.host | default(servarr.database.host) }}"
