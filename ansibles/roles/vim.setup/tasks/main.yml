@@ -63,10 +63,8 @@
     dest: ~/.vim/bundle/vim-prettier
     state: link
 
-- name: Downloading localvimrc
+- name: Download localvimrc
   ansible.builtin.get_url:
     url: https://www.vim.org/scripts/download_script.php?src_id=27167
     dest: ~/
-
-- name: Installing localvimrc
-  ansible.builtin.shell: vim -c 'so %' -c 'q' ~/Downloads/localvimrc.vmb
+  notify: "vim.setup : Install localvimrc"
