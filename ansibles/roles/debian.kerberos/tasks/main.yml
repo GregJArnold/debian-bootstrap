@@ -1,6 +1,3 @@
-# vim:ft=ansible:
----
-
 - name: Install Kerberos/PAM packages
   become: true
   ansible.builtin.apt:
@@ -64,10 +61,7 @@
     mode: '0644'
     owner: root
     group: root
-
-- name: Update PAM config
-  become: true
-  ansible.builtin.shell: pam-auth-update --package
+  notify: "debian.kerberos : Update PAM config"
 
 - name: Enable GSSAPI Authentication
   become: true
@@ -76,9 +70,4 @@
     regexp: 'GSSAPIAuthentication'
     line: GSSAPIAuthentication yes
     insertbefore: 'GSSAPI'
-
-- name: Restart sshd
-  become: true
-  ansible.builtin.service:
-    name: sshd
-    state: restarted
+  notify: "debian.kerberos : Restart sshd"
