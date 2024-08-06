@@ -1,5 +1,37 @@
+defaults:
+  sonarr:
+    port: 8989
+    branch: main
+    arch: x64
+    pkgs:
+      - wget
+      - curl
+  radarr:
+    port: 7878
+    branch: master
+    pkgs:
+      - wget
+      - curl
+  prowlarr:
+    port: 9696
+    branch: master
+    pkgs:
+      - wget
+      - curl
+  lidarr:
+    port: 8686
+    branch: master
+    pkgs:
+      - wget
+      - curl
+      - mediainfo
+      - libchromaprint-tools
+
 uService: "{{ service[0] | upper }}{{ service[1:] }}"
 dbUser: "{{ servarr[service].database.user | default(servarr.database.user) }}"
 dbPass: "{{ servarr[service].database.password | default(servarr.database.password) }}"
 dbPort: "{{ servarr[service].database.port | default(servarr.database.port) }}"
 dbHost: "{{ servarr[service].database.host | default(servarr.database.host) }}"
+
+xPort: "{{ servicePort | default(defaults[service].port) }}"
+serviceGroup: media

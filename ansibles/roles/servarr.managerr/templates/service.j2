@@ -3,7 +3,7 @@ Description={{ uService }} Daemon
 After=syslog.target network.target
 [Service]
 User={{ service }}
-Group={{ service }}
+Group={{ serviceGroup }}
 UMask=0002
 Type=simple
 ExecStart=/opt/{{ uService }}/{{ uService }} -nobrowser -data=/var/lib/{{ service }}

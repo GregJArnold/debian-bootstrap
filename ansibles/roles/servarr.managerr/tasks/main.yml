@@ -1,38 +1,14 @@
-- name: "Create {{ service }} group"
-  become: true
-  ansible.builtin.group:
-    name: "{{ service }}"
-    system: true
-
-- name: "Create {{ service }} user"
-  become: true
-  ansible.builtin.user:
-    group: "{{ service }}"
-    name: "{{ service }}"
-    system: true
-    create_home: false
-
-- name: Add service user to users group
-  become: true
-  ansible.builtin.user:
-    append: true
-    groups:
-      - users
-    name: "{{ service }}"
-
 - name: Install pre-requisites
   become: true
   ansible.builtin.apt:
-    name:
-      - wget
-      - curl
+    name: "{{ defaults[service].pkgs }}"
     install_recommends: false
 
 - name: "Download {{ uService }}"
   become: true
   ansible.builtin.get_url:
     dest: "~/{{ service }}-{{ version }}.tar.gz"
-    url: "https://github.com/{{ uService }}/{{ uService }}/releases/download/v{{ version }}/{{ uService }}.{{ branch }}.{{ version }}.linux-{{ arch | default('core-x64') }}.tar.gz"
+    url: "https://github.com/{{ uService }}/{{ uService }}/releases/download/v{{ version }}/{{ uService }}.{{ defaults[service].branch }}.{{ version }}.linux-{{ defaults[service].arch | default('core-x64') }}.tar.gz"
 
 - name: "Unpack {{ uService }}"
   become: true
@@ -41,7 +17,7 @@
     dest: /opt
     remote_src: true
     owner: "{{ service }}"
-    group: "{{ service }}"
+    group: "{{ serviceGroup }}"
 
 - name: Create app data directory
   become: true
@@ -50,7 +26,7 @@
     state: directory
     mode: '0750'
     owner: "{{ service }}"
-    group: "{{ service }}"
+    group: "{{ serviceGroup }}"
 
 - name: Build config.xml file
   become: true
@@ -58,7 +34,7 @@
     src: templates/config.xml.j2
     dest: "/var/lib/{{ service }}/config.xml"
     owner: "{{ service }}"
-    group: "{{ service }}"
+    group: "{{ serviceGroup }}"
     mode: '0644'
     backup: true
 
