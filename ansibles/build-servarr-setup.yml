@@ -14,8 +14,6 @@
       service: "sonarr"
       servicePort: "8989"
       version: "4.0.8.1874"
-      branch: main
-      arch: x64
 
 - name: Set up Radarr
   hosts: radarr
@@ -23,8 +21,6 @@
     - role: "servarr.managerr"
       service: "radarr"
       servicePort: "7878"
-      branch: master
-      version: "5.8.3.8933"
 
 - name: Set up Prowlarr
   hosts: prowlarr
@@ -32,10 +28,21 @@
     - role: servarr.managerr
       service: prowlarr
       servicePort: "9696"
-      branch: master
-      version: "1.21.2.4649"
+
+- name: Set up Lidarr
+  hosts: lidarr
+  roles:
+    - role: servarr.managerr
+      service: lidarr
+      servicePort: "8686"
+      version: "2.4.3.4248"
 
 - name: Set up qBittorrent
   hosts: qbittorrent
   roles:
     - servarr.qbittorrent
+
+- name: Set up Jellyfin
+  hosts: jellyfin
+  roles:
+    - servarr.jellyfin

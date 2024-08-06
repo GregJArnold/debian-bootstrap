@@ -1,0 +1,51 @@
+- name: Install ffmpeg
+  become: true
+  ansible.builtin.apt:
+    name:
+      - ffmpeg
+    install_recommends: false
+
+- name: add Jellyfin APT Key
+  become: true
+  ansible.builtin.get_url:
+    url: https://repo.jellyfin.org/jellyfin_team.gpg.key
+    dest: /etc/apt/keyrings/jellyfin.asc
+
+- name: Add Jellyfin APT Repo
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/jellyfin.asc] https://repo.jellyfin.org/debian/ bookworm main"
+    state: present
+    filename: jellyfin
+
+#- name: Install Jellyfin server packages
+#  become: true
+#  ansible.builtin.apt:
+#    pkg:
+#      - jellyfin-server
+#      - jellyfin-web
+#    state: present
+#    update_cache: true
+
+- name: Set jellyfin group
+  become: true
+  ansible.builtin.lineinfile:
+    insertafter: '^\s*[Service]'
+    line: "Group = media"
+    path: /lib/systemd/system/jellyfin.service
+    regexp: '^\s*Group\s*='
+
+- name: Remove jellyfin group
+  ansible.builtin.lineinfile:
+  become: true
+  ansible.builtin.lineinfile:
+    regexp: '^jellyfin:'
+    state: absent
+    path: /etc/group
+
+- name: Start Jellyfin
+  become: true
+  ansible.builtin.service:
+    name: jellyfin
+    enabled: true
+    state: started
