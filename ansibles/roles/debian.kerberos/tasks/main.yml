@@ -24,6 +24,13 @@
     - nss-pgsql.conf
     - pam_pgsql.conf
 
+- name: Pull users from /etc/group
+  become: true
+  ansible.builtin.lineinfile:
+    regexp: '^users:'
+    state: absent
+    path: /etc/group
+
 - name: Set up nsswitch passwd
   become: true
   ansible.builtin.lineinfile:
