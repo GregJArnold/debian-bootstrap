@@ -68,12 +68,6 @@
     group: www-data
     mode: '0640'
 
-- name: Generate Artisan App Key
-  become: true
-  ansible.builtin.shell:
-    chdir: /heimdall/www
-    cmd: "php artisan key:generate"
-
 - name: Disable other Apache sites
   become: true
   ansible.builtin.shell:
@@ -94,6 +88,11 @@
   ansible.builtin.shell:
     chdir: /etc/apache2/sites-available
     cmd: "a2ensite heimdall"
+
+- name: Enable Apache rewrite module
+  community.general.apache2_module:
+    state: present
+    name: rewrite
 
 - name: Restart Aapache
   become: true
