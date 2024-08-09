@@ -1,0 +1,102 @@
+- name: Install php
+  become: true
+  ansible.builtin.apt:
+    install_recommends: false
+    name:
+      - php-cli
+      - php-curl
+      - php-mbstring
+      - php-pgsql
+      - php-tokenizer
+      - php-xml
+      - php-zip
+      - apache2
+      - libapache2-mod-php
+
+- name: Create heimdall group
+  become: true
+  ansible.builtin.group:
+    name: heimdall
+    state: present
+    system: true
+
+- name: Create heimdall user
+  become: true
+  ansible.builtin.user:
+    create_home: false
+    group: heimdall
+    home: /heimdall
+    name: heimdall
+    state: present
+    system: true
+
+- name: Create heimdall directory
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: /heimdall/www
+    mode: '0750'
+    owner: heimdall
+    group: www-data
+
+- name: Downloading Heimdall
+  become: true
+  ansible.builtin.get_url:
+    dest: /heimdall/heimdall.tar.gz
+    group: heimdall
+    mode: '0644'
+    owner: heimdall
+    url: https://github.com/linuxserver/Heimdall/archive/refs/tags/v2.6.1.tar.gz
+
+- name: Unpacking Heimdall
+  become: true
+  ansible.builtin.unarchive:
+    dest: /heimdall/www
+    group: www-data
+    owner: heimdall
+    remote_src: true
+    src: /heimdall/heimdall.tar.gz
+    extra_opts:
+      - --strip-components=1
+
+- name: Build Heimdall environment file
+  become: true
+  ansible.builtin.template:
+    src: templates/.env.j2
+    dest: /heimdall/www/.env
+    owner: heimdall
+    group: www-data
+    mode: '0640'
+
+- name: Generate Artisan App Key
+  become: true
+  ansible.builtin.shell:
+    chdir: /heimdall/www
+    cmd: "php artisan key:generate"
+
+- name: Disable other Apache sites
+  become: true
+  ansible.builtin.shell:
+    chdir: /etc/apache2/sites-available
+    cmd: "a2dissite *"
+
+- name: Build Heimdall Apache site
+  become: true
+  ansible.builtin.template:
+    src: templates/heimdall.conf.j2
+    dest: /etc/apache2/sites-available/heimdall.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Enable Heimdall Apache sites
+  become: true
+  ansible.builtin.shell:
+    chdir: /etc/apache2/sites-available
+    cmd: "a2ensite heimdall"
+
+- name: Restart Aapache
+  become: true
+  ansible.builtin.service:
+    name: apache2
+    state: restarted
