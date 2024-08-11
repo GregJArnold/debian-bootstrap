@@ -3,7 +3,13 @@
 #- import_playbook: build-vm.yml
 
 - name: Set up NFS mounts
-  hosts: all
+  hosts:
+    - sonarr
+    - radarr
+    - prowlarr
+    - lidarr
+    - jellyfin
+    - qbittorrent
   roles:
     - servarr.nfs
 
@@ -46,3 +52,8 @@
   hosts: jellyfin
   roles:
     - servarr.jellyfin
+
+- name: Set up Flaresolverr
+  hosts: flaresolverr
+  roles:
+    - servarr.flaresolverr

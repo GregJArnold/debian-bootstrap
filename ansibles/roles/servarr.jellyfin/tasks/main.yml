@@ -36,7 +36,6 @@
     regexp: '^\s*Group\s*='
 
 - name: Remove jellyfin group
-  ansible.builtin.lineinfile:
   become: true
   ansible.builtin.lineinfile:
     regexp: '^jellyfin:'

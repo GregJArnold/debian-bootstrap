@@ -1,0 +1,69 @@
+- name: Install packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - xvfb
+      - chromium
+      - python3-pip
+      - python3-venv
+      - xauth
+    install_recommends: false
+
+- name: Create flaresolverr group
+  become: true
+  ansible.builtin.group:
+    name: flaresolverr
+    state: present
+    system: true
+
+- name: Create flaresolverr user
+  become: true
+  ansible.builtin.user:
+    create_home: false
+    group: flaresolverr
+    home: /opt/flaresolverr
+    name: flaresolverr
+    state: present
+    system: true
+
+- name: Create flaresolverr directory
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: /opt/flaresolverr
+    owner: flaresolverr
+    group: flaresolverr
+    mode: '0750'
+
+- name: Pulling flaresolverr
+  become: true
+  become_user: flaresolverr
+  ansible.builtin.git:
+    repo: https://github.com/FlareSolverr/FlareSolverr.git
+    dest: /opt/flaresolverr/FlareSolverr
+
+- name: Create Python venv
+  become: true
+  become_user: flaresolverr
+  ansible.builtin.pip:
+    chdir: /opt/flaresolverr/FlareSolverr
+    requirements: requirements.txt
+    virtualenv: /opt/flaresolverr/venv
+    virtualenv_command: "python3 -m venv /opt/flaresolverr/venv"
+
+- name: Install flaresolverr service
+  become: true
+  ansible.builtin.template:
+    src: templates/flaresolverr.service.j2
+    dest: /lib/systemd/system/flaresolverr.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Start flaresolverr
+  become: true
+  ansible.builtin.systemd_service:
+    name: flaresolverr
+    daemon_reload: true
+    enabled: true
+    state: started
