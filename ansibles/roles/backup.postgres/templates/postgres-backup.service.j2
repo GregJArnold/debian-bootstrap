@@ -1,0 +1,7 @@
+[Unit]
+Description=Dump and back up postgres database
+After=network.target network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/backup/postgres-backup.sh

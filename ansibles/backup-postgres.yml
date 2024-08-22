@@ -1,0 +1,9 @@
+---
+
+#- import_playbook: build-vm.yml
+
+- name: Set up Postgres backup
+  hosts: postgres
+  roles:
+    - backup.pbsclient
+    - backup.postgres
