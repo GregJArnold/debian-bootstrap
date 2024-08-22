@@ -1,0 +1,45 @@
+- name: Add Zabbix GPG keys
+  become: true
+  ansible.builtin.copy:
+    src: ./
+    dest: /etc/apt/keyrings
+
+- name: Add Zabbix repos
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/zabbix-official-repo-apr2024.gpg] https://repo.zabbix.com/zabbix/7.0/debian bookworm main"
+    state: present
+    filename: zabbix
+
+- name: Add Zabbix tool repos
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/zabbix-tools.gpg arch=all] https://repo.zabbix.com/zabbix-tools/debian-ubuntu bookworm main"
+    state: present
+    filename: zabbix-tools
+
+- name: Install Zabbix packages
+  become: true
+  ansible.builtin.apt:
+    pkg:
+      - zabbix-server-pgsql
+      - zabbix-frontend-php
+      - php8.2-pgsql
+      - zabbix-apache-conf
+      - zabbix-sql-scripts
+      - zabbix-agent
+      - locales
+    state: present
+    update_cache: true
+
+- name: Start qBittorrent
+  become: true
+  ansible.builtin.service:
+    name: "{{ item }}"
+    daemon_reload: true
+    enabled: true
+    state: restarted
+  loop:
+    - zabbix-server
+    - zabbix-agent
+    - apache2
