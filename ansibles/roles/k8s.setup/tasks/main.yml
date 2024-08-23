@@ -57,3 +57,10 @@
   ansible.builtin.service:
     name: containerd
     state: restarted
+
+- name: Set IPv6 forwarding
+  become: true
+  ansible.posix.sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: 1
+    sysctl_set: true
