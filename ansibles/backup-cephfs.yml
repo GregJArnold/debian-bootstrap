@@ -1,0 +1,9 @@
+---
+
+#- import_playbook: build-vm.yml
+
+- name: Set up CephFS backup
+  hosts: backup
+  roles:
+    - backup.pbsclient
+    - backup.cephfs
