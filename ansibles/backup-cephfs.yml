@@ -7,3 +7,7 @@
   roles:
     - backup.pbsclient
     - backup.cephfs
+    - role: backup.service
+      serviceName: cephfs
+      serviceDescription: Back up CephFS filesystems
+      servicePath: /opt/backup/cephfs-backup.sh

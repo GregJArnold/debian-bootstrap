@@ -1,7 +1,0 @@
-[Unit]
-Description=Back up CephFS filesystems
-After=network.target network-online.target
-
-[Service]
-Type=oneshot
-ExecStart=/opt/backup/cephfs-backup.sh
