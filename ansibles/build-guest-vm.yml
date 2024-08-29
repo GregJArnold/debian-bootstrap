@@ -1,0 +1,10 @@
+---
+
+- name: Builds a VM for the guest network from a fresh Debian install
+  hosts: all
+
+  roles:
+    - debian.base
+    - debian.notime
+    - { role: "debian.rsyslog", rsyslog_host: "192.168.2.4" }
+    - vim.setup

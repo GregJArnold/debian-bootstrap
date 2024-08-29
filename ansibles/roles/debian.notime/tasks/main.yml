@@ -1,0 +1,10 @@
+- name: Remove all time-sync packages
+  become: true
+  ansible.builtin.apt:
+    purge: true
+    state: absent
+    name:
+      - chrony
+      - ntpsec
+      - ntp
+      - systemd-timesyncd

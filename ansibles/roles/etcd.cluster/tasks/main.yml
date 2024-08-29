@@ -1,0 +1,45 @@
+- name: Install etcd
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+      - etcd-server
+      - etcd-client
+
+- name: Install etcd config file
+  become: true
+  ansible.builtin.template:
+    src: 'templates/etcd.j2'
+    dest: /etc/default/etcd
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Create ETCD SSL directory
+  ansible.builtin.file:
+    path: /etc/ssl/etcd
+    state: directory
+    owner: etcd
+    group: etcd
+    mode: '0750'
+
+- name: Copy PKI files
+  become: true
+  ansible.builtin.copy:
+    src: "{{ hostvars[groups['control_plane'][0]].tmp.path }}/{{ item }}"
+    dest: "/etc/ssl/etcd"
+    owner: etcd
+    group: etcd
+    mode: '0640'
+  loop:
+    - ca.pem
+    - "{{ inventory_hostname }}-peer.pem"
+    - "{{ inventory_hostname }}-peer-key.pem"
+    - server.pem
+    - server-key.pem
+
+- name: Restart etcd
+  become: true
+  ansible.builtin.service:
+    name: etcd
+    state: restarted

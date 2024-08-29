@@ -1,0 +1,53 @@
+- name: Add Zabbix GPG keys
+  become: true
+  ansible.builtin.copy:
+    src: ./
+    dest: /etc/apt/keyrings
+
+- name: Add Zabbix repos
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/zabbix-official-repo-apr2024.gpg] https://repo.zabbix.com/zabbix/7.0/debian bookworm main"
+    state: present
+    filename: zabbix
+
+- name: Install Zabbix packages
+  become: true
+  ansible.builtin.apt:
+    pkg:
+      - zabbix-agent2
+    state: present
+    update_cache: true
+
+- name: Set Zabbix server
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/zabbix/zabbix_agent2.conf
+    state: present
+    regexp: '^Server='
+    insertafter: 'Option:\s*Server'
+    line: 'Server=zabbix.oh.qwop.net'
+
+- name: Set Zabbix ServerActive
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/zabbix/zabbix_agent2.conf
+    state: present
+    regexp: '^ServerActive='
+    insertafter: 'Option:\s*ServerActive'
+    line: 'ServerActive=zabbix.oh.qwop.net'
+
+- name: Remove Zabbix Hostname
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/zabbix/zabbix_agent2.conf
+    state: absent
+    regexp: '^\s*Hostname='
+
+- name: Start agent
+  become: true
+  ansible.builtin.service:
+    name: zabbix-agent2
+    daemon_reload: true
+    enabled: true
+    state: restarted

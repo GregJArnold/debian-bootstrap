@@ -1,0 +1,10 @@
+- name: Install Postgres backup script
+  become: true
+  ansible.builtin.template:
+    src: templates/postgres-backup.sh.j2
+    dest: /opt/backup/postgres-backup.sh
+    owner: root
+    group: backup
+    mode: "0750"
+  vars:
+    directory: /var/lib/postgresql/backup

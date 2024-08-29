@@ -1,0 +1,59 @@
+---
+
+#- import_playbook: build-vm.yml
+
+- name: Set up NFS mounts
+  hosts:
+    - sonarr
+    - radarr
+    - prowlarr
+    - lidarr
+    - jellyfin
+    - qbittorrent
+  roles:
+    - servarr.nfs
+
+- name: Set up Sonarr
+  hosts: sonarr
+  roles:
+    - role: "servarr.managerr"
+      service: "sonarr"
+      servicePort: "8989"
+      version: "4.0.8.1874"
+
+- name: Set up Radarr
+  hosts: radarr
+  roles:
+    - role: "servarr.managerr"
+      service: "radarr"
+      servicePort: "7878"
+
+- name: Set up Prowlarr
+  hosts: prowlarr
+  roles:
+    - role: servarr.managerr
+      service: prowlarr
+      servicePort: "9696"
+
+- name: Set up Lidarr
+  hosts: lidarr
+  roles:
+    - role: servarr.managerr
+      service: lidarr
+      servicePort: "8686"
+      version: "2.4.3.4248"
+
+- name: Set up qBittorrent
+  hosts: qbittorrent
+  roles:
+    - servarr.qbittorrent
+
+- name: Set up Jellyfin
+  hosts: jellyfin
+  roles:
+    - servarr.jellyfin
+
+- name: Set up Flaresolverr
+  hosts: flaresolverr
+  roles:
+    - servarr.flaresolverr

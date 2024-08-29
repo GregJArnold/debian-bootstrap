@@ -1,0 +1,80 @@
+- name: Install Kerberos/PAM packages
+  become: true
+  ansible.builtin.apt:
+    pkg:
+      - krb5-user
+      - libnss-pgsql2
+      - libpam-krb5
+    install_recommends: no
+
+- name: Install libpam-pgsql
+  become: true
+  ansible.builtin.apt:
+    deb: https://sarge.oh.qwop.net/libpam-pgsql_0.7.3.2-1+b1_amd64.deb
+
+- name: Install config files
+  become: true
+  ansible.builtin.template:
+    src: "templates/{{ item }}.j2"
+    dest: "/etc/{{ item }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - nss-pgsql.conf
+    - pam_pgsql.conf
+
+- name: Pull users from /etc/group
+  become: true
+  ansible.builtin.lineinfile:
+    regexp: '^users:'
+    state: absent
+    path: /etc/group
+
+- name: Set up nsswitch passwd
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/nsswitch.conf
+    state: present
+    regexp: '^(\s*passwd:)(?!.* pgsql)(.*)$'
+    line: '\1\2 pgsql'
+    backrefs: yes
+
+- name: Set up nsswitch group
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/nsswitch.conf
+    state: present
+    regexp: '^(\s*group:)(?!.* pgsql)(.*)$'
+    line: '\1\2 pgsql'
+    backrefs: yes
+    backup: yes
+
+- name: Add linuxadmin to sudoers
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%linuxadmin\s+ALL='
+    insertafter: '^%sudo\s+ALL='
+    line: '%linuxadmin  ALL=(ALL:ALL) NOPASSWD:ALL'
+    validate: /usr/sbin/visudo -cf %s
+
+- name: Install PAM config file
+  become: true
+  ansible.builtin.copy:
+    src: ./pgsql
+    dest: /usr/share/pam-configs
+    mode: '0644'
+    owner: root
+    group: root
+  notify: "debian.kerberos : Update PAM config"
+
+- name: Enable GSSAPI Authentication
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: 'GSSAPIAuthentication'
+    line: GSSAPIAuthentication yes
+    insertbefore: 'GSSAPI'
+  notify: "debian.kerberos : Restart sshd"

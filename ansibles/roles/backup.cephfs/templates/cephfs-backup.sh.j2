@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PBS_PASSWORD_FILE=/opt/backup/token proxmox-backup-client backup \
+{% for fs in cephfs_filesystems %}
+	"{{ fs }}.pxar:/mnt/{{ fs }}" \
+{% endfor %}
+	--skip-lost-and-found \
+	--ns cephfs \
+	--backup-id {{ ansible_host }} \
+	--repository '{{ backup.tokenName }}@{{ backup.host }}:{{ backup.datastore }}'

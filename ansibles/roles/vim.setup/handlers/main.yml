@@ -1,0 +1,2 @@
+- name: Install localvimrc
+  ansible.builtin.shell: vim -c 'so %' -c 'q' ~/Downloads/localvimrc.vmb

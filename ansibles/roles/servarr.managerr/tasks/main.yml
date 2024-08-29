@@ -1,0 +1,58 @@
+- name: Install pre-requisites
+  become: true
+  ansible.builtin.apt:
+    name: "{{ defaults[service].pkgs }}"
+    install_recommends: false
+
+- name: "Download {{ uService }}"
+  become: true
+  ansible.builtin.get_url:
+    dest: "~/{{ service }}-{{ version }}.tar.gz"
+    url: "https://github.com/{{ uService }}/{{ uService }}/releases/download/v{{ version }}/{{ uService }}.{{ defaults[service].branch }}.{{ version }}.linux-{{ defaults[service].arch | default('core-x64') }}.tar.gz"
+
+- name: "Unpack {{ uService }}"
+  become: true
+  ansible.builtin.unarchive:
+    src: "~/{{ service }}-{{ version }}.tar.gz"
+    dest: /opt
+    remote_src: true
+    owner: "{{ service }}"
+    group: "{{ serviceGroup }}"
+
+- name: Create app data directory
+  become: true
+  ansible.builtin.file:
+    name: "/var/lib/{{ service }}"
+    state: directory
+    mode: '0750'
+    owner: "{{ service }}"
+    group: "{{ serviceGroup }}"
+
+- name: Build config.xml file
+  become: true
+  ansible.builtin.template:
+    src: templates/config.xml.j2
+    dest: "/var/lib/{{ service }}/config.xml"
+    owner: "{{ service }}"
+    group: "{{ serviceGroup }}"
+    mode: '0644'
+    backup: true
+
+# TODO: Add postgres user and table
+
+- name: Build systemd service
+  become: true
+  ansible.builtin.template:
+    src: templates/service.j2
+    dest: "/lib/systemd/system/{{ service }}.service"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: "Start {{ service }}"
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ service }}"
+    daemon_reload: true
+    enabled: true
+    state: started

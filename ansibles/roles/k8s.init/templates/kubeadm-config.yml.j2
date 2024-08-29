@@ -1,0 +1,20 @@
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+kubernetesVersion: stable
+controlPlaneEndpoint: "{{ etcd.ip }}:6443"
+etcd:
+  external:
+    endpoints:
+{% for host in groups["etcd"] %}
+      - https://{{ hostvars[host].ansible_host }}:2379
+{% endfor %}
+    caFile: /etc/kubernetes/pki/etcd/ca.pem
+    certFile: /etc/kubernetes/pki/apiserver-etcd-client.crt
+    keyFile: /etc/kubernetes/pki/apiserver-etcd-client.key
+networking:
+  podSubnet: {{ k8s.podSubnetIPv4 }},{{ k8s.podSubnetIPv6 }}
+  dnsDomain: {{ k8s.dnsDomain }}
+  serviceSubnet: {{ k8s.serviceSubnetIPv4 }},{{ k8s.serviceSubnetIPv6 }}
+
+# vim: set filetype=yaml:

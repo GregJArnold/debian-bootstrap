@@ -1,0 +1,11 @@
+{
+	"CN":"etcd-server",
+	"key":{"algo":"ecdsa","size":256},
+	"hosts":[
+{% for host in groups["etcd"] %}
+		"{{ hostvars[host].ansible_fqdn }}",
+		"{{ hostvars[host].ansible_host }}",
+{% endfor %}
+		"127.0.0.1"
+	]
+}

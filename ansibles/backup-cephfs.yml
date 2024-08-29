@@ -1,0 +1,13 @@
+---
+
+#- import_playbook: build-vm.yml
+
+- name: Set up CephFS backup
+  hosts: backup
+  roles:
+    - backup.pbsclient
+    - backup.cephfs
+    - role: backup.service
+      serviceName: cephfs
+      serviceDescription: Back up CephFS filesystems
+      servicePath: /opt/backup/cephfs-backup.sh

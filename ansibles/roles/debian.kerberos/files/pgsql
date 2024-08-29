@@ -1,0 +1,8 @@
+Name: Postgres authentication
+Default: yes
+Priority: 256
+Account-Type: Primary
+Account:
+	[success=end new_authtok_reqd=done default=ignore]	pam_pgsql.so try_first_pass
+Account-Initial:
+	[success=end new_authtok_reqd=done default=ignore]	pam_pgsql.so

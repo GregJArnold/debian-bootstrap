@@ -1,0 +1,35 @@
+#!/bin/bash
+
+DIR=/var/lib/mysql/backup
+SKIP_DB=("information_schema" "performance_schema")
+SKIP_TABLE=("mysql.event" "mysql.general_log" "mysql.help_category" "mysql.help_keyword" "mysql.help_relation" "mysql.help_topic" "mysql.ndb_binlog_index" "mysql.slow_log" "mysql.time_zone" "mysql.time_zone_leap_second" "mysql.time_zone_name" "mysql.time_zone_transition" "mysql.time_zone_transition_type" "mysql.transaction_registry")
+
+DBS=$(mysql --skip-column-names -e "show databases")
+
+mkdir "$DIR"
+
+for i in $DBS; do
+	for skip in "${SKIP_DB[@]}"; do
+		if [ "$skip" = "$i" ]; then
+			continue 2
+		fi
+	done
+	mkdir "${DIR}/${i}"
+	TABLES=$(mysql --skip-column-names -e "show tables in $i")
+	for t in $TABLES; do
+		for skip in "${SKIP_TABLE[@]}"; do
+			if [ "$skip" = "$i.$t" ]; then
+				continue 2
+			fi
+		done
+		mysqldump -icea --opt $i $t > "${DIR}/${i}/${t}.sql"
+	done
+done
+
+PBS_PASSWORD_FILE=/opt/backup/token proxmox-backup-client backup "mariadb.pxar:$DIR" \
+  --skip-lost-and-found \
+  --ns mariadb \
+  --backup-id {{ ansible_host }} \
+  --repository '{{ backup.tokenName }}@{{ backup.host }}:{{ backup.datastore }}'
+
+rm -rf "$DIR"

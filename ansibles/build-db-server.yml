@@ -1,0 +1,8 @@
+---
+
+#- import_playbook: build-vm.yml
+
+- name: Set up PostgresQL
+  hosts: all
+  roles:
+    - debian.postgres

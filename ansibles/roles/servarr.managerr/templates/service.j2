@@ -1,0 +1,14 @@
+[Unit]
+Description={{ uService }} Daemon
+After=syslog.target network.target
+[Service]
+User={{ service }}
+Group={{ serviceGroup }}
+UMask=0002
+Type=simple
+ExecStart=/opt/{{ uService }}/{{ uService }} -nobrowser -data=/var/lib/{{ service }}
+TimeoutStopSec=20
+KillMode=process
+Restart=on-failure
+[Install]
+WantedBy=multi-user.target

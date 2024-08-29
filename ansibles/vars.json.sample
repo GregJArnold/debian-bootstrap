@@ -1,0 +1,15 @@
+{
+  "etcd": {
+    "token": "etcd-cluster-token",
+    "pass": "keepalive-pass",
+    "ip": "< IP handed off among cluster >",
+    "subnet": 24
+  },
+	"cephfs": {
+		"adminKey": "< output of ceph auth get-key client.admin >",
+		"fsid": "< output of ceph fsid >",
+		"monitors": [
+			"< IP address(es) of Ceph mon daemon >"
+		]
+	}
+}

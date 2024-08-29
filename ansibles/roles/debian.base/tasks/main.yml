@@ -1,0 +1,21 @@
+# vim:ft=ansible:
+---
+
+- name: Update all packages to their latest version
+  become: true
+  ansible.builtin.apt:
+    name: "*"
+    state: latest
+    update_cache: yes
+
+- name: Install packages
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+      - strace
+      - tcpdump
+      - aptitude
+      - git
+      - dnsutils
+      - net-tools

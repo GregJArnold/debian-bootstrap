@@ -1,0 +1,22 @@
+<Config>
+  <BindAddress>*</BindAddress>
+  <Port>{{ xPort }}</Port>
+  <SslPort>9898</SslPort>
+  <EnableSsl>False</EnableSsl>
+  <LaunchBrowser>False</LaunchBrowser>
+  <ApiKey>{{ servarr[service].apiKey }}</ApiKey>
+  <AuthenticationMethod>External</AuthenticationMethod>
+  <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>
+  <Branch>{{ defaults[service].branch }}</Branch>
+  <LogLevel>info</LogLevel>
+  <SslCertPath></SslCertPath>
+  <SslCertPassword></SslCertPassword>
+  <UrlBase></UrlBase>
+  <InstanceName>Sonarr</InstanceName>
+  <PostgresUser>{{ dbUser }}</PostgresUser>
+  <PostgresPassword>{{ dbPass }}</PostgresPassword>
+  <PostgresPort>{{ dbPort | default('5432') }}</PostgresPort>
+  <PostgresHost>{{ dbHost }}</PostgresHost>
+  <PostgresMainDb>{{ servarr[service].database.mainDb }}</PostgresMainDb>
+  <PostgresLogDb>{{ servarr[service].database.logDb }}</PostgresLogDb>
+</Config>

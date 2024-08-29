@@ -1,0 +1,13 @@
+---
+
+#- import_playbook: build-vm.yml
+
+- name: Set up Postgres backup
+  hosts: postgres
+  roles:
+    - backup.pbsclient
+    - backup.postgres
+    - role: backup.service
+      serviceName: postgres
+      serviceDescription: Dump and back up postgres database
+      servicePath: /opt/backup/postgres-backup.sh

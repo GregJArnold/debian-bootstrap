@@ -1,0 +1,7 @@
+- name: Install BIND
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+     - bind9-host
+     - bind9

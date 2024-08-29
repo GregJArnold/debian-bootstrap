@@ -1,0 +1,23 @@
+- name: Install qBittorrent
+  become: true
+  ansible.builtin.apt:
+    name:
+      - qbittorrent-nox
+    install_recommends: false
+
+- name: Start qBittorrent
+  become: true
+  ansible.builtin.systemd_service:
+    name: "qbittorrent-nox@torrent"
+    daemon_reload: true
+    enabled: true
+    state: started
+ 
+- name: Set umask
+  become: true
+  ansible.builtin.lineinfile:
+    insertafter: '^\s*[Service]'
+    line: "UMask=0002"
+    path: /lib/systemd/system/qbittorrent-nox@.service
+    regexp: '^\s*UMask='
+  notify: "servarr.qbittorrent : Restart qBittorrent"

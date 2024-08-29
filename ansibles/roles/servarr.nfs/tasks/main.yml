@@ -1,0 +1,25 @@
+- name: Install NFS client
+  become: true
+  ansible.builtin.apt:
+    name:
+      - nfs-common
+    install_recommends: false
+
+- name: Add mount directory
+  become: true
+  ansible.builtin.file:
+    path: /data
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Mount filesystems
+  become: true
+  ansible.posix.mount:
+    fstype: nfs
+    opts: "nolock,rw"
+    passno: "1"
+    state: mounted
+    src: sarge.oh.qwop.net:/data/servarr
+    path: /data

@@ -1,0 +1,102 @@
+#!/bin/bash
+
+USERNAME=postgres
+SU_USERNAME=postgres
+DBHOST=localhost
+DBNAMES="all"
+
+# pseudo database name used to dump global objects (users, roles, tablespaces)
+GLOBALS_OBJECTS="postgres_globals"
+
+# ============================================================
+# === ADVANCED OPTIONS ( Read the doc's below for details )===
+#=============================================================
+
+# List of DBNAMES to EXLUCDE if DBNAMES are set to all (must be in " quotes)
+DBEXCLUDE=""
+
+# Include CREATE DATABASE in backup?
+CREATE_DATABASE=yes
+
+# Choose Compression type. (gzip or bzip2)
+COMP=gzip
+
+# OPT string for use with pg_dump ( see man pg_dump )
+OPT=""
+
+# Backup files extension
+EXT="sql"
+
+BASEDIR="/var/lib/postgresql"
+BACKUPDIR="backup"
+
+PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/postgres/bin:/usr/local/pgsql/bin
+DATE=`date -u +%Y-%m-%dT%H:%M:%SZ`
+
+if [ -n "$SU_USERNAME" ]; then
+	DUMPALLCMD="sudo -Hu $SU_USERNAME pg_dumpall"
+	DUMPCMD="sudo -Hu $SU_USERNAME pg_dump"
+else
+	DUMPALLCMD="pg_dumpall"
+	DUMPCMD="pg_dump"
+fi
+
+# Database dump function
+dbdump () {
+	rm -f $2
+	touch $2
+	chmod 600 $2
+	for db in $1 ; do
+		if [ "$db" = "$GLOBALS_OBJECTS" ]; then
+			$DUMPALLCMD $PGHOST --globals-only >> $2
+		else
+			$DUMPCMD $PGHOST $OPT $db >> $2
+		fi
+	done
+	return 0
+}
+
+if [ "$CREATE_DATABASE" = "no" ]; then
+	OPT="$OPT"
+else
+	OPT="$OPT --create"
+fi
+
+# If backing up all DBs on the server
+if [ "$DBNAMES" = "all" ]; then
+	if [ -n "$SU_USERNAME" ]; then
+		DBNAMES="$(su $SU_USERNAME -c "LANG=C psql -U $USERNAME $PGHOST -l -A -F: | sed -ne '/:/ { /Name:Owner/d; /template0/d; s/:.*$//; p }'")"
+	else
+		DBNAMES="`LANG=C psql -U $USERNAME $PGHOST -l -A -F: | sed -ne "/:/ { /Name:Owner/d; /template0/d; s/:.*$//; p }"`"
+	fi
+	
+	# If DBs are excluded
+	for exclude in $DBEXCLUDE
+	do
+		DBNAMES=`echo $DBNAMES | sed "s/\b$exclude\b//g"`
+	done
+	DBNAMES="$(echo $DBNAMES| tr '\n' ' ')"
+fi
+
+# Include global objects (users, tablespaces)
+DBNAMES="$GLOBALS_OBJECTS $DBNAMES"
+
+cd "$BASEDIR"
+mkdir "$BACKUPDIR"
+
+for DB in $DBNAMES
+do
+	# Prepare $DB for using
+	DB="`echo $DB | sed 's/%/ /g'`"
+	dbdump "$DB" "$BACKUPDIR/$DB.$EXT"
+done
+
+PBS_PASSWORD_FILE=/opt/backup/token proxmox-backup-client backup "postgres.pxar:$BACKUPDIR" \
+	--skip-lost-and-found \
+	--ns postgres \
+	--backup-id {{ ansible_host }} \
+	--repository '{{ backup.tokenName }}@{{ backup.host }}:{{ backup.datastore }}'
+
+rm -rf "$BACKUPDIR"
+
+exit $STATUS
