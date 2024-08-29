@@ -1,0 +1,25 @@
+- name: Build systemd service
+  become: true
+  ansible.builtin.template:
+    src: templates/service.j2
+    dest: "/lib/systemd/system/{{ serviceName }}-backup.service"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Build systemd timer
+  become: true
+  ansible.builtin.template:
+    src: templates/timer.j2
+    dest: "/lib/systemd/system/{{ serviceName }}-backup.timer"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Start backup timer
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ serviceName }}-backup.timer"
+    daemon_reload: true
+    enabled: true
+    state: started

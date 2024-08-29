@@ -1,0 +1,13 @@
+---
+
+#- import_playbook: build-vm.yml
+
+- name: Set up MariaDB backup
+  hosts: mariadb
+  roles:
+    - backup.pbsclient
+    - backup.mariadb
+    - role: backup.service
+      serviceName: mariadb
+      serviceDescription: Back up MariaDB databases
+      servicePath: /opt/backup/mariadb-backup.sh
