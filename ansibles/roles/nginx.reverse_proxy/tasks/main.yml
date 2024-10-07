@@ -1,0 +1,32 @@
+- name: Install nginx
+  become: true
+  ansible.builtin.apt:
+    name: nginx
+
+- name: Disable nginx default site
+  become: true
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Build nginx config
+  become: true
+  ansible.builtin.template:
+    src: templates/local_proxy.j2
+    dest: /etc/nginx/sites-available/local_proxy
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Link site
+  become: true
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/local_proxy
+    state: link
+    src: /etc/nginx/sites-available/local_proxy
+
+- name: Restart nginx
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    state: restarted

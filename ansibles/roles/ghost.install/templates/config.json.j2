@@ -1,0 +1,32 @@
+{
+  "url": "https://{{ ghost.url }}",
+  "server": {
+    "port": 2368,
+    "host": "127.0.0.1"
+  },
+  "database": {
+    "client": "mysql",
+    "connection": {
+      "host": "{{ ghost.database.host }}",
+      "user": "{{ ghost.database.user }}",
+      "password": "{{ ghost.database.password }}",
+      "database": "{{ ghost.database.database }}"
+    }
+  },
+  "mail": {
+    "host": "smtp.oh.qwop.net",
+    "port": 25,
+    "secure": false,
+    "requireTLS": true
+  },
+  "logging": {
+    "transports": [
+      "file",
+      "stdout"
+    ]
+  },
+  "process": "systemd",
+  "paths": {
+    "contentPath": "/ghost/content"
+  }
+}

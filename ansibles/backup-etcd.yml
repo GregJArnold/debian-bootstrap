@@ -1,0 +1,19 @@
+---
+
+#- import_playbook: build-vm.yml
+
+- name: Generate backup certificate
+  hosts: control_plane
+  roles:
+    - role: etcd.backup
+      when: inventory_hostname == groups["control_plane"][0]
+
+- name: Set up etcd backup
+  hosts: backup
+  roles:
+    - backup.pbsclient
+    - backup.etcd
+    - role: backup.service
+      serviceName: etcd
+      serviceDescription: Back up etcd
+      servicePath: /opt/backup/etcd-backup.sh

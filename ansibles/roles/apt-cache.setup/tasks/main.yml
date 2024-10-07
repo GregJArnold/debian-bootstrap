@@ -1,0 +1,35 @@
+- name: Install Apt-Cacher NG
+  become: true
+  ansible.builtin.apt:
+    install_recommends: false
+    name: apt-cacher-ng
+
+- name: Set cache timeout
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/apt-cacher-ng/acng.conf
+    state: present
+    regexp: '\s*#?\s*ExThreshold:'
+    line: 'ExThreshold: 15'
+
+- name: Set User-Agent string
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/apt-cacher-ng/acng.conf
+    state: present
+    regexp: '\s*#?\s*UserAgent:'
+    line: 'UserAgent: Debian APT-HTTP/1.3 (1.6.10)'
+
+- name: Allow User Ports
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/apt-cacher-ng/acng.conf
+    state: present
+    regexp: '\s*#?\s*AllowUserPorts:'
+    line: 'AllowUserPorts: 0'
+
+- name: Restart Apt-Cacher NG
+  become: true
+  ansible.builtin.service:
+    name: apt-cacher-ng
+    state: restarted

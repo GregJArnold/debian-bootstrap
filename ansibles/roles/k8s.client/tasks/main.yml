@@ -1,0 +1,26 @@
+- name: add Kubernetes APT Key
+  become: true
+  ansible.builtin.get_url:
+    url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
+    dest: /etc/apt/keyrings/kubernetes.asc
+
+- name: Add Kubernetes APT Repo
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes.asc] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /"
+    state: present
+    filename: k8s
+
+- name: Install Kubernetes packages
+  become: true
+  ansible.builtin.apt:
+    pkg:
+      - kubectl
+    state: present
+    update_cache: true
+
+- name: create .kube directory
+  ansible.builtin.file:
+    path: $HOME/.kube
+    state: directory
+    mode: 0750

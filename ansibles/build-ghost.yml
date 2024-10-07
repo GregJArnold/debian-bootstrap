@@ -1,0 +1,13 @@
+---
+
+#- import_playbook: build-vm.yml
+
+- name: Set up Ghost
+  hosts: all
+  roles:
+    - role: nodejs.install
+      node_version: 20.x
+    - ghost.install
+    - role: nginx.reverse_proxy
+      reverse_proxy:
+        port: 2368

@@ -1,0 +1,17 @@
+- name: Add Nodesource APT Key
+  become: true
+  ansible.builtin.get_url:
+    url: https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
+    dest: /etc/apt/keyrings/nodesource.asc
+
+- name: Add Nodesource repo
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/nodesource.asc] http://HTTPS///deb.nodesource.com/node_{{ node_version }} nodistro main"
+    state: present
+    filename: nodesource
+
+- name: Install nodejs
+  become: true
+  ansible.builtin.apt:
+    name: nodejs

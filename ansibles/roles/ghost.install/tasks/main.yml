@@ -1,0 +1,73 @@
+
+- name: Install ghost-cli
+  become: true
+  community.general.npm:
+    name: ghost-cli
+    global: true
+
+- name: Create ghost group
+  become: true
+  ansible.builtin.group:
+    name: ghost
+    system: true
+
+- name: Adding user to ghost group
+  become: true
+  ansible.builtin.user:
+    groups:
+      - ghost
+    append: true
+    name: "{{ ansible_user_id }}"
+
+- name: Create ghost user
+  become: true
+  ansible.builtin.user:
+    create_home: false
+    group: ghost
+    home: /ghost
+    name: ghost
+    system: true
+
+- name: Create ghost directory
+  become: true
+  ansible.builtin.file:
+    name: /ghost
+    state: directory
+    mode: "0770"
+    owner: ghost
+    group: ghost
+
+- name: Create ghost config
+  ansible.builtin.template:
+    src: templates/config.json.j2
+    dest: /ghost/config.production.json
+    mode: "0660"
+    group: ghost
+    backup: true
+
+- name: Install ghost
+  ansible.builtin.shell: HOME=. ghost install --no-prompt --no-check-empty --no-stack --no-setup-linux-user --no-setup-nginx --no-setup-systemd --no-setup-ssl --no-start >> ghost_install
+  args:
+    chdir: /ghost
+    creates: current
+
+- name: Setting Ghost permissions
+  become: true
+  ansible.builtin.file:
+    path: /ghost/content
+    owner: ghost
+    group: ghost
+    recurse: true
+
+- name: Install ghost systemd
+  ansible.builtin.shell: HOME=. ghost setup systemd >> ghost_systemd
+  args:
+    chdir: /ghost
+    creates: ghost_systemd
+
+- name: Start ghost
+  become: true
+  ansible.builtin.service:
+    name: "ghost_{{ ansible_fqdn | replace('.', '-') }}"
+    enabled: true
+    state: started
