@@ -1,0 +1,33 @@
+- name: Genecarte client cert
+  ansible.builtin.shell:
+    chdir: ~/etcd-pki
+    cmd: cfssl gencert -ca=cert/ca.pem -ca-key=cert/ca-key.pem -config=config.json -profile=client client.json | cfssljson -bare cert/backup
+    creates: ~/etcd-pki/cert/backup.pem
+
+- name: Find CSRs
+  ansible.builtin.find:
+    paths: ~/etcd-pki/cert
+    patterns: "*.csr"
+  register: csrs
+
+- name: Remove CSRs
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ csrs.files }}"
+
+- name: Create temp directory
+  delegate_to: localhost
+  ansible.builtin.tempfile:
+    state: directory
+  register: etcd_backup_tmp
+
+- name: Fetch certs
+  ansible.builtin.fetch:
+    dest: '{{ etcd_backup_tmp.path }}/'
+    src: '~/etcd-pki/cert/{{ item }}'
+    flat: true
+  with_items:
+    - backup.pem
+    - backup-key.pem
+    - ca.pem

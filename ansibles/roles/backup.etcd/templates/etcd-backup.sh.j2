@@ -1,0 +1,16 @@
+#!/bin/bash
+
+mkdir /opt/backup/etcd
+
+{% for host in groups["etcd"] -%}
+	etcdctl snapshot save /opt/backup/etcd/{{ host }}.snap --endpoints={{ hostvars[host].ansible_host }}:2379 --cacert=/opt/backup/ca.pem --cert=/opt/backup/backup.pem --key=/opt/backup/backup-key.pem
+{% endfor %}
+
+PBS_PASSWORD_FILE=/opt/backup/token proxmox-backup-client backup \
+	etcd.pxar:/opt/backup/etcd \
+	--skip-lost-and-found \
+	--ns etcd \
+	--backup-id {{ ansible_host }} \
+	--repository '{{ backup.tokenName }}@{{ backup.host }}:{{ backup.datastore }}'
+
+rm -rf /opt/backup/etcd

@@ -1,0 +1,28 @@
+- name: Instal etcd client package
+  become: true
+  ansible.builtin.apt:
+    install_recommends: false
+    name:
+      - etcd-client
+
+- name: Copy PKI files
+  become: true
+  ansible.builtin.copy:
+    src: "{{ hostvars[groups['control_plane'][0]].etcd_backup_tmp.path }}/{{ item }}"
+    dest: /opt/backup
+    owner: root
+    group: backup
+    mode: '0640'
+  loop:
+    - ca.pem
+    - backup.pem
+    - backup-key.pem
+
+- name: Install etcd backup script
+  become: true
+  ansible.builtin.template:
+    src: templates/etcd-backup.sh.j2
+    dest: /opt/backup/etcd-backup.sh
+    owner: root
+    group: backup
+    mode: "0750"

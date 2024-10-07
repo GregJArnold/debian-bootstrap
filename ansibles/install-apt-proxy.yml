@@ -1,0 +1,6 @@
+---
+
+- name: Set up Apt-Cacher Proxy
+  hosts: all
+  roles:
+    - apt-cache.proxy
