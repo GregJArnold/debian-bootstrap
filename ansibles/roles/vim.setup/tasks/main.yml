@@ -21,10 +21,10 @@
     purge: true
 
 - name: Installing vimrc
-  ansible.builtin.file:
-    src: ~/git/debian-bootstrap/.vimrc
+  ansible.builtin.template:
+    src: templates/vimrc.j2
     dest: ~/.vimrc
-    state: link
+    mode: '0644'
 
 - name: Creating vim autoload directory
   ansible.builtin.file:
@@ -36,21 +36,15 @@
     path: ~/.vim/bundle
     state: directory
 
+- name: Make sure git directory exists
+  ansible.builtin.file:
+    path: ~/git
+    state: directory
+
 - name: Downloading Pathogen
   ansible.builtin.get_url:
     url: http://tpo.pe/pathogen.vim
     dest: ~/.vim/autoload
-
-- name: Pulling typescript-vim
-  ansible.builtin.git:
-    repo: https://github.com/leafgarland/typescript-vim.git
-    dest: ~/git/typescript-vim
-
-- name: Linking typescript-vim
-  ansible.builtin.file:
-    src: ~/git/typescript-vim
-    dest: ~/.vim/bundle/typescript-vim
-    state: link
 
 - name: Pulling vim-prettier
   ansible.builtin.git:

@@ -4,10 +4,10 @@
   hosts: all
 
   roles:
+    - apt-cache.proxy
     - debian.base
     - debian.notime
     - debian.sudoers
     - { role: "debian.rsyslog", rsyslog_host: "192.168.2.4" }
-    - debs.setup
     - vim.setup
     - debian.kerberos
