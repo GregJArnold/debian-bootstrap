@@ -1,0 +1,37 @@
+- name: Remove other time-sync packages
+  become: true
+  ansible.builtin.apt:
+    purge: true
+    state: absent
+    name:
+      - ntpsec
+      - ntp
+      - systemd-timesyncd
+
+- name: Install chrony
+  become: true
+  ansible.builtin.apt:
+    pkg: chrony
+    install_recommends: false
+
+- name: Add the ptp_kvm module
+  become: true
+  community.general.modprobe:
+    name: ptp_kvm
+    state: present
+    persistent: present
+
+- name: Install chrony config file
+  become: true
+  ansible.builtin.template:
+    src: templates/chrony.conf.j2
+    dest: /etc/chrony/chrony.conf
+    mode: 0644
+    owner: root
+    group: root
+
+- name: Restart chrony
+  become: true
+  ansible.builtin.service:
+    name: chrony
+    state: restarted  

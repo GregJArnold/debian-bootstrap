@@ -6,7 +6,10 @@
     - debian.base
     - role: debian.sudoers
       when: inventory_hostname not in groups["etcd"]
-    - debian.notime
+    - role: debian.notime
+      when: inventory_hostname in groups["etcd"]
+    - role: debian.ptp_time
+      when: inventory_hostname not in groups["etcd"]
     - { role: "debian.rsyslog", rsyslog_host: "192.168.2.4" }
     - debs.setup
     - vim.setup
