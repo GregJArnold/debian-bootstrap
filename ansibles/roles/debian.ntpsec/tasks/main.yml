@@ -22,9 +22,4 @@
     owner: root
     group: root
     mode: '0644'
-
-- name: Restart ntpsec
-  become: true
-  ansible.builtin.service:
-    name: ntpsec
-    state: restarted
+  notify: "debian.ntpsec : Restart ntpsec"
