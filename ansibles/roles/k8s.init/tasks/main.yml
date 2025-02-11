@@ -73,6 +73,12 @@
     chdir: $HOME
     creates: pod_network_setup.txt
 
+- name: Install nginx Ingress
+  ansible.builtin.shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.1/deploy/static/provider/cloud/deploy.yaml >> nginx_setup.txt
+  args:
+    chdir: $HOME
+    creates: nginx_setup.txt
+
 - name: Fetch API key
   become: true
   ansible.builtin.shell: kubeadm --config ~/kubeadm-config.yml init phase upload-certs --upload-certs
