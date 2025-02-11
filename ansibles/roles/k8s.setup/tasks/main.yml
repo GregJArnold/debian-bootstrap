@@ -14,23 +14,16 @@
       "exec-opts": ["native.cgroupdriver=systemd"]
       }
 
-- name: install Docker
-  become: true
-  ansible.builtin.apt:
-    name: docker.io
-    state: present
-    update_cache: true
-
 - name: add Kubernetes APT Key
   become: true
   ansible.builtin.get_url:
-    url: https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key
+    url: https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key
     dest: /etc/apt/keyrings/kubernetes.asc
 
 - name: Add Kubernetes APT Repo
   become: true
   ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes.asc] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /"
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes.asc] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /"
     state: present
     filename: k8s
 
@@ -38,6 +31,7 @@
   become: true
   ansible.builtin.apt:
     pkg:
+      - docker.io
       - kubelet
       - kubeadm
     state: present
