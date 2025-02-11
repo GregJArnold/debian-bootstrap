@@ -1,0 +1,11 @@
+[Unit]
+Description=Recipient Checking Milter
+Before=postfix.service
+
+[Service]
+Type=forking
+ExecStartPre=/bin/rm -f /var/spool/postfix/public/checkrcpt.sock
+ExecStart=/usr/sbin/milter-checkrcpt -u postfix -b /etc/postfix/transport.db -p /var/spool/postfix/milter/checkrcpt.sock
+
+[Install]
+WantedBy=multi-user.target

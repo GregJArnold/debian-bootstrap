@@ -1,0 +1,39 @@
+- name: Install ClamAV
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+      - clamav-milter
+      - clamav-daemon
+
+- name: Configure ClamAV Daemon
+  become: true
+  ansible.builtin.template:
+    src: templates/clamd.conf.j2
+    dest: /etc/clamav/clamd.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: "mail.clamav : Restart ClamAV Daemon"
+
+- name: Configure ClamAV Milter
+  become: true
+  ansible.builtin.template:
+    src: templates/clamav-milter.conf.j2
+    dest: /etc/clamav/clamav-milter.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: "mail.clamav : Restart ClamAV Milter"
+
+- name: Configure FreshClam
+  become: true
+  ansible.builtin.template:
+    src: "templates/{{ item }}.j2"
+    dest: "/etc/clamav/{{ item }}"
+    owner: clamav
+    group: adm
+    mode: 0444
+  notify: "mail.clamav : Restart ClamAV FreshClam"
+  loop:
+    - freshclam.conf

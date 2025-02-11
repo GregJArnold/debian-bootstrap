@@ -1,0 +1,25 @@
+- name: Copy milter-checkrcpt binary
+  become: true
+  ansible.builtin.copy:
+    src: files/milter-checkrcpt
+    dest: /usr/sbin
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Copy milter-checkrcpt systemd service
+  become: true
+  ansible.builtin.template:
+    src: templates/milter-checkrcpt.service.j2
+    dest: /lib/systemd/system/milter-checkrcpt.service
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Start milter-checkrcpt
+  become: true
+  ansible.builtin.systemd_service:
+    name: milter-checkrcpt
+    daemon_reload: true
+    enabled: true
+    state: started

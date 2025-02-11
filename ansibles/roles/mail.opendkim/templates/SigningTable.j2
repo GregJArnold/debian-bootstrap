@@ -1,0 +1,3 @@
+{% for domain in infra.mail[ansible_fqdn].domains %}
+*@{{ domain }} {{ infra.mail[ansible_fqdn].shortName }}._domainkey.{{ domain }}
+{% endfor %}

@@ -1,0 +1,26 @@
+- name: Install SpamAssassin
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+      - spamd
+
+- name: Configure spamd defaults
+  become: true
+  ansible.builtin.template:
+    src: templates/spamd.j2
+    dest: /etc/default/spamd
+    owner: root
+    group: root
+    mode: 0644
+  notify: "mail.spamd : Restart spamd"
+
+- name: Configure spamd local.cf
+  become: true
+  ansible.builtin.template:
+    src: templates/local.cf.j2
+    dest: /etc/spamassassin/local.cf
+    owner: root
+    group: root
+    mode: 0644
+  notify: "mail.spamd : Restart spamd"

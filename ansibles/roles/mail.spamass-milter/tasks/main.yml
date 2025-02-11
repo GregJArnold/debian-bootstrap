@@ -1,0 +1,25 @@
+- name: Install spamass-milter
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+      - spamass-milter
+
+- name: Add spamass-milter to milter group
+  become: true
+  ansible.builtin.user:
+    groups:
+      - postmilter
+    append: true
+    name: spamass-milter
+  notify: "mail.spamass-milter : Restart spamass-milter"
+
+- name: Configure spamass-milter defaults
+  become: true
+  ansible.builtin.template:
+    src: templates/spamass-milter.j2
+    dest: /etc/default/spamass-milter
+    owner: root
+    group: root
+    mode: 0644
+  notify: "mail.spamass-milter : Restart spamass-milter"

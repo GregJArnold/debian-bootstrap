@@ -1,0 +1,56 @@
+- name: Install Postfix
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+      - postfix
+
+- name: Create milter group
+  become: true
+  ansible.builtin.group:
+    name: postmilter
+    system: true
+
+- name: Create milter directory
+  become: true
+  ansible.builtin.file:
+    path: /var/spool/postfix/milter
+    state: directory
+    owner: postfix
+    group: postmilter
+    mode: 01730
+
+- name: Build DH file
+  become: true
+  ansible.builtin.shell: openssl dhparam -out /etc/postfix/dh2048.pem 2048
+  args:
+    creates: /etc/postfix/dh2048.pem
+ 
+- name: Configure Postfix
+  become: true
+  ansible.builtin.template:
+    src: templates/main.cf.j2
+    dest: /etc/postfix/main.cf
+    owner: root
+    group: root
+    mode: 0644
+  notify: "mail.postfix : Restart Postfix"
+
+- name: Load maps
+  become: true
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /etc/postfix
+    owner: root
+    group: root
+    mode: 0644
+  with_fileglob: "~/secrets/postfix_maps/*"
+  register: maps
+
+- name: Build maps
+  ansible.builtin.shell: "postmap {{ item.dest }}"
+  args:
+    chdir: /etc/postfix
+  when: item.changed
+  loop: "{{ maps.results | flatten(levels = 1) }}"
+  notify: "mail.postfix : Restart Postfix"

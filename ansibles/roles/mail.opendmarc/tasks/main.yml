@@ -1,0 +1,43 @@
+- name: Install OpenDMARC
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg: opendmarc
+
+- name: Add OpenDMARC to milter group
+  become: true
+  ansible.builtin.user:
+    groups:
+      - postmilter
+    append: true
+    name: opendmarc
+  notify: "mail.opendkim : Restart OpenDKIM"
+
+- name: Add postfix to OpenDMARC group
+  become: true
+  ansible.builtin.user:
+    groups:
+      - opendmarc
+    append: true
+    name: postfix
+  notify: "mail.postfix : Restart Postfix"
+
+- name: Configure OpenDKIM
+  become: true
+  ansible.builtin.template:
+    src: templates/opendmarc.conf.j2
+    dest: /etc/opendmarc.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: "mail.opendmarc : Restart OpenDMARC"
+
+- name: Configure OpenDKIM Ignore List
+  become: true
+  ansible.builtin.template:
+    src: templates/opendmarc-ignore-hosts.conf.j2
+    dest: /etc/opendmarc-ignore-hosts.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: "mail.opendmarc : Restart OpenDMARC"

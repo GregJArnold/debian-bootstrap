@@ -1,0 +1,66 @@
+- name: Install OpenDKIM
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg: opendkim
+
+- name: Add OpenDKIM to milter group
+  become: true
+  ansible.builtin.user:
+    groups:
+      - postmilter
+    append: true
+    name: opendkim
+  notify: "mail.opendkim : Restart OpenDKIM"
+
+- name: Configure OpenDKIM
+  become: true
+  ansible.builtin.template:
+    src: templates/opendkim.conf.j2
+    dest: /etc/opendkim.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: "mail.opendkim : Restart OpenDKIM"
+
+- name: Create OpenDKIM Directory
+  become: true
+  ansible.builtin.file:
+    state: directory
+    mode: 0755
+    group: root
+    owner: root
+    name: /etc/opendkim
+
+- name: Create OpenDKIM key directory
+  become: true
+  ansible.builtin.file:
+    state: directory
+    mode: 0750
+    group: opendkim
+    owner: root
+    name: /etc/opendkim/keys
+
+- name: Install OpenDKIM configuration
+  become: true
+  ansible.builtin.template:
+    src: "templates/{{ item }}.j2"
+    dest: "/etc/opendkim/{{ item }}"
+    owner: root
+    group: opendkim
+    mode: 0664
+  loop:
+    - SigningTable
+    - KeyTable
+    - TrustedHosts
+  notify: "mail.opendkim : Restart OpenDKIM"
+
+- name: Install OpenDKIM Keys
+  become: true
+  ansible.builtin.copy:
+    dest: "/etc/opendkim/keys/{{ infra.mail[ansible_fqdn].shortName }}-{{ item }}.pem"
+    src: "~/secrets/dkim_keys/{{ infra.mail[ansible_fqdn].shortName }}-{{ item }}.pem"
+    mode: 0640
+    owner: root
+    group: opendkim
+  loop: "{{ infra.mail[ansible_fqdn].domains }}"

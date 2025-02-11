@@ -1,0 +1,4 @@
+{% set short = infra.mail[ansible_fqdn].shortName %}
+{% for domain in infra.mail[ansible_fqdn].domains %}
+{{ short }}._domainkey.{{ domain }} {{ domain }}:{{ short }}:/etc/opendkim/keys/{{ short }}-{{domain}}.pem
+{% endfor %}
