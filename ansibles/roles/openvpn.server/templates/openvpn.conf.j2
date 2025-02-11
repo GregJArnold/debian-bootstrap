@@ -1,0 +1,21 @@
+dev tun-{{ item.clientShort }}
+
+port {{ item.serverPort }}
+proto tcp-server
+
+ifconfig {{ item.serverIP }} {{ item.clientIP }}
+secret {{ item.server }}--{{ item.client }}.key
+comp-lzo
+keepalive 10 60
+ping-timer-rem
+persist-tun
+persist-key
+user nobody
+group nogroup
+verb 3
+auth SHA512
+cipher AES-256-CBC
+;mute 5
+{% for network in item.clientNetworks%}
+route {{ network | ansible.utils.ipaddr("network") }} {{ network | ansible.utils.ipaddr("netmask") }}
+{% endfor %}
