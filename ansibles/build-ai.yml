@@ -1,0 +1,8 @@
+---
+
+- import_playbook: build-vm.yml
+
+- name: Set up AI
+  hosts: ai
+  roles:
+    - ollama.install
