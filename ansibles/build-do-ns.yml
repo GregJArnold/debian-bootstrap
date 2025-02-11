@@ -1,0 +1,12 @@
+---
+
+#- import_playbook: build-do.yml
+
+- name: Set up DigitalOcean Network Services
+  hosts: do
+  roles:
+    #- openvpn.server
+    #- bind.split_horizon
+    - postgres.slave
+
+#- import_playbook: build-mail.yml

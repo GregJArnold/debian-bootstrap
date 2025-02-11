@@ -1,0 +1,13 @@
+---
+
+- name: Builds a DigitalOcean machine from a fresh Debian install
+  hosts: all
+
+  roles:
+    - debian.base
+    - role: "debian.ntpsec"
+      hosts: ["time.nist.gov"]
+    - debian.sudoers
+    - { role: "debian.rsyslog", rsyslog_host: "192.168.2.4" }
+    - vim.setup
+    - debian.kerberos
