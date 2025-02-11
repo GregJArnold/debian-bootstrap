@@ -1,0 +1,125 @@
+include "/etc/bind/transfer.keys";
+
+acl internal
+	{
+	!key external-key;
+	key internal-key;
+	10.0.0.0/8;
+	172.16.0.0/12;
+	192.168.0.0/16;
+	127.0.0.0/8;
+	2001:470:1f11:c5b::/64;
+	2600:1f14:a70:7e00::/56;
+	2600:1f16:e02:6800::/56;
+	fe80::/10;
+	::1/128;
+	};
+
+acl external
+	{
+	!key internal-key;
+	key external-key;
+	any;
+	};
+
+view "internal"
+	{
+	server 192.168.19.8
+		{
+		send-cookie no;
+		edns no;
+		};
+
+	match-clients
+		{
+		internal;
+		};
+
+	allow-recursion
+		{
+		any;
+		};
+
+	zone "."
+		{
+		type hint;
+		file "/usr/share/dns/root.hints";
+		};
+	{% for zone in infra.bind.internalZones %}
+
+	zone "{{ zone }}"
+		{
+		file "{{ zone }}";
+		type slave;
+		masterfile-format text;
+		notify no;
+		masters
+			{
+			192.168.2.4 key internal-key;
+			};
+		};
+	{% endfor %}
+
+	zone "home.local"
+		{
+		file "home.local";
+		type slave;
+		masterfile-format text;
+		notify no;
+		masters
+			{
+			192.168.19.8;
+			};
+		};
+
+	zone "19.168.192.in-addr.arpa"
+		{
+		file "19.168.192.in-addr.arpa";
+		type slave;
+		masterfile-format text;
+		notify no;
+		masters
+			{
+			192.168.19.8;
+			};
+		};
+	};
+
+view "external"
+	{
+	recursion no;
+	match-clients
+		{
+		external;
+		};
+	{% for zone in infra.bind.externalZones %}
+
+	zone "{{ zone }}"
+		{
+		file "{{ zone }}-ext";
+		type slave;
+		masterfile-format text;
+		notify no;
+		masters
+			{
+			192.168.2.4 key external-key;
+			};
+		};
+	{% endfor %}
+	};
+
+logging
+  {
+	channel all
+		{
+		syslog local1;
+		severity info;
+		print-category yes;
+		};
+
+	category default
+		{
+		all;
+		};
+	};
+

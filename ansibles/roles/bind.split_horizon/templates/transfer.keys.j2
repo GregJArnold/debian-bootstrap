@@ -1,0 +1,11 @@
+key "external-key"
+  {
+  algorithm HMAC-SHA512;
+  secret "{{ infra.bind.externalKey }}";
+  };
+
+key "internal-key"
+  {
+  algorithm HMAC-SHA512;
+  secret "{{ infra.bind.internalKey }}";
+  };
