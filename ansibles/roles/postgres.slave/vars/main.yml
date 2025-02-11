@@ -1,0 +1,2 @@
+pg_var_path: /var/lib/postgresql/15
+pg_db_name: main

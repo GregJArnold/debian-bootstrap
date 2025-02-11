@@ -1,0 +1,89 @@
+- name: Install Postgres
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+     - postgresql
+
+- name: Load slave state
+  ansible.builtin.stat:
+    path: "{{ pg_var_path }}/slave"
+  register: slave_file
+
+- name: Stop postgresql
+  become: true
+  ansible.builtin.service:
+    name: postgresql
+    state: stopped
+  when: not slave_file.stat.exists
+ 
+- name: Create a temporary .pgpass file
+  become: true
+  ansible.builtin.tempfile:
+    path: /tmp
+    prefix: pgpass_
+    state: file
+  register: temp_pgpass
+  when: not slave_file.stat.exists
+
+- name: Build pgpass file
+  become: true
+  ansible.builtin.copy:
+    content: "*:*:*:{{ infra.nss.master.user }}:{{ infra.nss.master.password }}"
+    dest: "{{ temp_pgpass.path }}"
+    owner: postgres
+  when: not slave_file.stat.exists
+
+- name: Clean directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ pg_var_path }}/{{ pg_db_name }}"
+    state: absent
+  when: not slave_file.stat.exists
+
+- name: Start pg_basebackup
+  become: true
+  become_user: postgres
+  ansible.builtin.shell: PGPASSFILE={{ temp_pgpass.path }} pg_basebackup -h {{ infra.nss.master.host }} -U {{ infra.nss.master.user }} -D {{ pg_var_path }}/{{ pg_db_name }} -w
+  when: not slave_file.stat.exists
+
+- name: Torch tempfile
+  become: true
+  ansible.builtin.file:
+    path: "{{ temp_pgpass.path }}"
+    state: absent
+  when: not slave_file.stat.exists
+
+- name: Create standby.signal
+  become: true
+  ansible.builtin.file:
+    path: "{{ pg_var_path }}/{{ pg_db_name }}/standby.signal"
+    state: touch
+    owner: postgres
+    group: postgres
+    mode: 0600
+  when: not slave_file.stat.exists
+
+- name: Create postgresql.auto.conf
+  become: true
+  ansible.builtin.template:
+    src: templates/postgresql.auto.conf.j2
+    dest: "{{ pg_var_path }}/{{ pg_db_name }}/postgresql.auto.conf"
+    owner: postgres
+    group: postgres
+    mode: 0600
+  when: not slave_file.stat.exists
+
+- name: Start postgresql
+  become: true
+  ansible.builtin.service:
+    name: postgresql
+    state: started
+  when: not slave_file.stat.exists
+ 
+- name: Create slave file
+  become: true
+  ansible.builtin.file:
+    path: "{{ pg_var_path }}/slave"
+    state: touch
+  when: not slave_file.stat.exists
