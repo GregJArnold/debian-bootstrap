@@ -1,0 +1,57 @@
+- name: Install Kerberos
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+     - krb5-kdc
+     - krb5-kpropd
+
+- name: Install KDC config
+  become: true
+  ansible.builtin.template:
+    src: templates/kdc.conf.j2
+    dest: /etc/krb5kdc/kdc.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: "kerberos.slave : Restart KDC"
+
+- name: Add stash file
+  become: true
+  ansible.builtin.copy:
+    src: ~/secrets/kerberos/stash
+    dest: /etc/krb5kdc/stash
+    owner: root
+    group: root
+    mode: 0600
+  notify: "kerberos.slave : Restart KDC"
+
+- name: Install kadmin ACL
+  become: true
+  ansible.builtin.template:
+    src: templates/kadm5.acl.j2
+    dest: /etc/krb5kdc/kadm5.acl
+    owner: root
+    group: root
+    mode: 0644
+  notify: "kerberos.slave : Restart KDC"
+
+- name: Install kpropd ACL
+  become: true
+  ansible.builtin.template:
+    src: templates/kpropd.acl.j2
+    dest: /etc/krb5kdc/kpropd.acl
+    owner: root
+    group: root
+    mode: 0644
+  notify: "kerberos.slave : Restart kpropd"
+
+- name: Install Kerberos config file
+  become: true
+  ansible.builtin.template:
+    src: templates/krb5.conf.j2
+    dest: /etc/krb5.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: "kerberos.slave : Restart KDC"

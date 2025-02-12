@@ -1,0 +1,23 @@
+[libdefaults]
+	default_realm = OH.QWOP.NET
+
+# The following krb5.conf variables are only for MIT Kerberos.
+	kdc_timesync = 1
+	ccache_type = 4
+	forwardable = true
+	proxiable = true
+	rdns = false
+
+
+# The following libdefaults parameters are only for Heimdal Kerberos.
+	fcc-mit-ticketflags = true
+
+[realms]
+	{{ infra.kerberos.realm }} = {
+		kdc = {{ infra.kerberos.adminServer }}
+		admin_server = {{ infra.kerberos.adminServer }}
+	}
+
+[domain_realm]
+	{{ infra.kerberos.domain }} = {{ infra.kerberos.realm }}
+	.{{ infra.kerberos.domain }} = {{ infra.kerberos.realm }}
