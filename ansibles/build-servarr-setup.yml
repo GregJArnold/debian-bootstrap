@@ -1,6 +1,6 @@
 ---
 
-#- import_playbook: build-vm.yml
+- import_playbook: build-vm.yml
 
 - name: Set up NFS mounts
   hosts:
