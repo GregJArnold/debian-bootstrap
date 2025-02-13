@@ -1,0 +1,21 @@
+- name: Install packages
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+      - keepalived
+
+- name: Install keepalived config file
+  become: true
+  ansible.builtin.template:
+    src: 'templates/keepalived.conf.j2'
+    dest: /etc/keepalived/keepalived.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Restart keepalived
+  become: true
+  ansible.builtin.service:
+    name: keepalived
+    state: restarted

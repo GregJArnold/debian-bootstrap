@@ -1,0 +1,31 @@
+{% set iface = namespace(name='null') %}
+{% for i in ansible_facts.interfaces %}
+{% set ip = ansible_facts[i].ipv4 %}
+{% set cidr = (ip.network, "/", ip.prefix) | join("") %}
+{% if infra.nss.virtualIp | ansible.utils.ipaddr(cidr) %}
+{% set iface.name = i %}
+{% endif %}
+{% endfor %}
+vrrp_track_process track_pg {
+	process postgres
+	delay 1
+}
+
+vrrp_instance VI_1 {
+	state BACKUP
+	nopreempt
+	interface {{ iface.name }}
+	virtual_router_id 101
+	priority 100
+	advert_int 1
+	authentication {
+		auth_type PASS
+		auth_pass {{ infra.nss.keepalivePass }}
+	}
+	virtual_ipaddress {
+		{{ infra.nss.virtualIp }}
+	}
+	track_process {
+		track_pg
+	}
+}
