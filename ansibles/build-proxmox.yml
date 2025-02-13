@@ -1,12 +1,12 @@
 ---
 
 - name: Builds a Proxmox Server from a fresh install
-  hosts: all
+  hosts: proxmox
 
   roles:
-    #- debian.base
-    #- debian.sudoers
-    #- { role: "debian.rsyslog", rsyslog_host: "192.168.2.4" }
+    - debian.base
+    - debian.sudoers
+    - { role: "debian.rsyslog", rsyslog_host: "192.168.2.4" }
     #- vim.setup
-    #- debian.kerberos
+    - debian.kerberos
     - { role: "debian.ntpsec", hosts: ["proxmox1.oh.qwop.net", "proxmox2.oh.qwop.net", "proxmox3.oh.qwop.net"] }
