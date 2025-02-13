@@ -87,3 +87,28 @@
     path: "{{ pg_var_path }}/slave"
     state: touch
   when: not slave_file.stat.exists
+
+- name: Listen on all addresses
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/15/main/postgresql.conf
+    state: present
+    regexp: 'listen_addresses\s*='
+    line: "listen_addresses = '*'   # what IP address(es) to listen on;"
+  notify: "postgres.slave : Restart postgresql"
+
+- name: Allow auth user via SSL
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/15/main/pg_hba.conf
+    state: present
+    line: "hostssl         auth    unixauth        0.0.0.0/0               scram-sha-256"
+  notify: "postgres.slave : Restart postgresql"
+
+- name: Allow auth user
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/15/main/pg_hba.conf
+    state: present
+    line: "host            auth    unixauth        0.0.0.0/0               scram-sha-256"
+  notify: "postgres.slave : Restart postgresql"
