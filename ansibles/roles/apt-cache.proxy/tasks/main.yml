@@ -1,8 +1,10 @@
-- name: Install proxy file
+- name: Install apt-auto-proxy
   become: true
-  ansible.builtin.template:
-    src: templates/00aptproxy.j2
-    dest: /etc/apt/apt.conf.d/00aptproxy
-    owner: root
-    group: root
-    mode: "0644"
+  ansible.builtin.apt:
+    pkg: auto-apt-proxy
+
+- name: Remove deprecated proxy file
+  become: true
+  ansible.builtin.file:
+    path: /etc/apt/apt.conf.d/00aptproxy
+    state: absent
