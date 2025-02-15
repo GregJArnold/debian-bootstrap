@@ -1,0 +1,65 @@
+- name: Add Gitlab APT Key
+  become: true
+  ansible.builtin.get_url:
+    url: https://packages.gitlab.com/gitlab/gitlab-ee/gpgkey
+    dest: /etc/apt/keyrings/gitlab.asc
+
+- name: Add Gitlab APT Repo
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/gitlab.asc] http://HTTPS///packages.gitlab.com/gitlab/gitlab-ee/debian/ bookworm main"
+    state: present
+    filename: gitlab
+
+- name: Install Gitlab
+  become: true
+  ansible.builtin.apt:
+    pkg:
+      - gitlab-ee
+    state: present
+    update_cache: true
+
+- name: Configure Gitlab
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/gitlab/gitlab.rb
+    state: present
+    regexp: '^\s*#?\s*{{ item.object }}\[''{{ item.key }}''\]\s+'
+    line: "{{ item.object }}['{{ item.key }}'] = {{ item.value }}"
+  notify: "gitlab.server : Reconfigure Gitlab"
+  loop:
+    - { object: "gitlab_rails", key: "smtp_domain", value: '"{{ infra.domain }}"' }
+    - { object: "gitlab_rails", key: "smtp_enable", value: 'true' }
+    - { object: "gitlab_rails", key: "smtp_port", value: '25' }
+    - { object: "gitlab_rails", key: "smtp_address", value: '"smtp.oh.qwop.net"' }
+    - { object: "gitlab_rails", key: "smtp_tls", value: 'false' }
+    - { object: "gitlab_rails", key: "gitlab_email_from", value: '''gitlab@{{ infra.domain }}''' }
+    - { object: "gitlab_rails", key: "gitlab_email_reply_to", value: '''noreply@{{ infra.domain }}''' }
+    - { object: "gitlab_rails", key: "db_adapter", value: '"postgresql"' }
+    - { object: "gitlab_rails", key: "db_encoding", value: '"utf8"' }
+    - { object: "gitlab_rails", key: "db_database", value: '"{{ gitlab.database.database }}"' }
+    - { object: "gitlab_rails", key: "db_username", value: '"{{ gitlab.database.user }}"' }
+    - { object: "gitlab_rails", key: "db_password", value: '"{{ gitlab.database.password }}"' }
+    - { object: "gitlab_rails", key: "db_host", value: '"{{ gitlab.database.host }}"' }
+    - { object: "gitlab_rails", key: "db_sslmode", value: '"require"' }
+    - { object: "postgresql", key: "enable", value: 'false' }
+    - { object: "sidekiq", key: "concurrency", value: '5' }
+    - { object: "nginx", key: "redirect_http_to_https", value: 'true' }
+    - { object: "nginx", key: "listen_addresses", value: '[''*'', ''[::]'']' }
+    - { object: "letsencrypt", key: "enable", value: 'true' }
+    - { object: "letsencrypt", key: "contact_emails", value: '[''{{ infra.email }}'']' }
+    - { object: "letsencrypt", key: "auto_renew", value: 'true' }
+    - { object: "letsencrypt", key: "auto_renew_hour", value: '0' }
+    - { object: "letsencrypt", key: "auto_renew_minute", value: '46' }
+    - { object: "letsencrypt", key: "auto_renew_day_of_month", value: '"*/4"' }
+    - { object: "gitlab_rails", key: "kerberos_enabled", value: 'true' }
+    - { object: "gitlab_rails", key: "kerberos_keytab", value: '"/etc/gitlab/gitlab.keytab"' }
+
+- name: Configure Gitlab External URL
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/gitlab/gitlab.rb
+    state: present
+    regexp: '^\s*#?\s*external_url\s+'
+    line: "external_url 'https://{{ ansible_fqdn }}'"
+  notify: "gitlab.server : Reconfigure Gitlab"

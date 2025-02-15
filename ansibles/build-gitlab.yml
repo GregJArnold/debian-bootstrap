@@ -1,0 +1,6 @@
+- import_playbook: build-base.yml
+
+- name: Set up Gitlab
+  hosts: gitlab
+  roles:
+    - gitlab.server
