@@ -7,6 +7,15 @@
       - libpam-krb5
     install_recommends: no
 
+- name: Set Kerberos default domain
+  become: true
+  ansible.builtin.lineinfile:
+    regexp: '^\s*#?default_realm'
+    state: present
+    line: '	default_realm = {{ infra.kerberos.realm }}'
+    insertafter: '[libdefaults]'
+    path: /etc/krb5.conf
+
 - name: Install libpam-pgsql
   become: true
   ansible.builtin.apt:
