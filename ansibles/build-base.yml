@@ -1,13 +1,15 @@
----
-
-- name: Builds a VM from a fresh Debian install
+- name: Builds a machine from a fresh Debian install
   hosts: all
 
   roles:
     - apt-cache.proxy
     - debian.base
-    - debian.notime
+    - role: debian.notime
+      when: is_ct
+    - role: debian.ptp_time
+      when: not is_ct
     - debian.sudoers
     - { role: "debian.rsyslog", rsyslog_host: "192.168.2.4" }
     - vim.setup
+    - ssh.setup
     - debian.kerberos

@@ -1,6 +1,6 @@
 ---
 
-- import_playbook: build-vm.yml
+- import_playbook: build-base.yml
 
 - name: Set up Apt-Cacher NG
   hosts: apt_cache
