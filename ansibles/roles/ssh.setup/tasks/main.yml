@@ -1,0 +1,27 @@
+# vim:ft=ansible:
+---
+
+- name: Check for home directory
+  ansible.builtin.stat:
+    path: ~
+  register: home_dir_exists
+
+- name: Create ssh directory
+  ansible.builtin.file:
+    path: ~/.ssh
+    state: directory
+    mode: 0700
+  when: home_dir_exists.stat.exists
+
+- name: Create ssh socket directory
+  ansible.builtin.file:
+    path: ~/.ssh/sockets
+    state: directory
+    mode: 0700
+  when: home_dir_exists.stat.exists
+
+- name: Build SSH config file
+  ansible.builtin.template:
+    src: templates/ssh_config.j2
+    dest: ~/.ssh/config
+  when: home_dir_exists.stat.exists

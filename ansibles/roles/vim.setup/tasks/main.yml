@@ -1,22 +1,22 @@
 # vim:ft=ansible:
 ---
 
+- name: Check for home directory
+  ansible.builtin.stat:
+    path: ~
+  register: home_dir_exists
+
 - name: Install vim
   become: true
   ansible.builtin.apt:
     name: vim
 
-- name: Purging nano
+- name: Purging other editors
   become: true
   ansible.builtin.apt:
-    name: nano
-    state: absent
-    purge: true
-
-- name: Purging vim-tiny
-  become: true
-  ansible.builtin.apt:
-    name: vim-tiny
+    name:
+      - nano
+      - vim-tiny
     state: absent
     purge: true
 
@@ -25,40 +25,48 @@
     src: templates/vimrc.j2
     dest: ~/.vimrc
     mode: '0644'
+  when: home_dir_exists.stat.exists
 
 - name: Creating vim autoload directory
   ansible.builtin.file:
     path: ~/.vim/autoload
     state: directory
+  when: home_dir_exists.stat.exists
 
 - name: Creating vim bundle directory
   ansible.builtin.file:
     path: ~/.vim/bundle
     state: directory
+  when: home_dir_exists.stat.exists
 
 - name: Make sure git directory exists
   ansible.builtin.file:
     path: ~/git
     state: directory
+  when: home_dir_exists.stat.exists
 
 - name: Downloading Pathogen
   ansible.builtin.get_url:
     url: http://tpo.pe/pathogen.vim
     dest: ~/.vim/autoload
+  when: home_dir_exists.stat.exists
 
 - name: Pulling vim-prettier
   ansible.builtin.git:
     repo: https://github.com/prettier/vim-prettier
     dest: ~/git/vim-prettier
+  when: home_dir_exists.stat.exists
 
 - name: Linking vim-prettier
   ansible.builtin.file:
     src: ~/git/vim-prettier
     dest: ~/.vim/bundle/vim-prettier
     state: link
+  when: home_dir_exists.stat.exists
 
 - name: Download localvimrc
   ansible.builtin.get_url:
     url: https://www.vim.org/scripts/download_script.php?src_id=27167
     dest: ~/
   notify: "vim.setup : Install localvimrc"
+  when: home_dir_exists.stat.exists
