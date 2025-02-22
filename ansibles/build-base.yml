@@ -13,4 +13,4 @@
     - vim.setup
     - ssh.setup
     - role: debian.kerberos
-      when: not skip_kerberos
+      when: skip_kerberos is undefined or not skip_kerberos
