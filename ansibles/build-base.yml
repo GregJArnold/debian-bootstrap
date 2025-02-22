@@ -12,4 +12,5 @@
     - { role: "debian.rsyslog", rsyslog_host: "192.168.2.4" }
     - vim.setup
     - ssh.setup
-    - debian.kerberos
+    - role: debian.kerberos
+      when: not skip_kerberos
