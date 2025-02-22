@@ -1,0 +1,49 @@
+include "/etc/bind/internal.key";
+
+server 192.168.19.8
+	{
+	send-cookie no;
+	edns no;
+	};
+
+zone "."
+	{
+	type hint;
+	file "/usr/share/dns/root.hints";
+	};
+{% for zone in infra.bind.internalZones %}
+{% set z = zone
+	if zone is mapping
+	else {"zone": zone, "masters": ["192.168.2.4 key internal-key"]}
+%}
+
+zone "{{ z.zone }}"
+	{
+	file "sz/{{ z.zone }}";
+	type slave;
+	masterfile-format text;
+	notify no;
+	masters
+		{
+		{%- for master in z.masters +%}
+		{{ master }};
+		{%- endfor +%}
+		};
+	};
+{% endfor %}
+
+logging
+	{
+	channel all
+		{
+		syslog local1;
+		severity info;
+		print-category yes;
+		};
+
+	category default
+		{
+		all;
+		};
+	};
+

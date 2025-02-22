@@ -1,0 +1,6 @@
+- import_playbook: build-base.yml
+
+- name: Set up Secondary nameserver
+  hosts: ns2
+  roles:
+    - bind.slave

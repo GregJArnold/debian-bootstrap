@@ -1,0 +1,45 @@
+- name: Install BIND
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+     - bind9-host
+     - bind9
+
+- name: Create sz directory
+  become: true
+  ansible.builtin.file:
+    path: /var/cache/bind/sz
+    state: directory
+    owner: bind
+    group: bind
+
+- name: Set up zones
+  become: true
+  ansible.builtin.template:
+    src: templates/named.conf.local.j2
+    dest: /etc/bind/named.conf.local
+    owner: root
+    group: bind
+    mode: 0644
+  notify: "bind.slave : Restart bind"
+
+- name: Set up keys
+  become: true
+  ansible.builtin.template:
+    src: templates/transfer.keys.j2
+    dest: /etc/bind/internal.key
+    owner: root
+    group: bind
+    mode: 0644
+  notify: "bind.slave : Restart bind"
+
+- name: Set up config
+  become: true
+  ansible.builtin.template:
+    src: templates/named.conf.j2
+    dest: /etc/bind/named.conf
+    owner: root
+    group: bind
+    mode: 0644
+  notify: "bind.slave : Restart bind"
