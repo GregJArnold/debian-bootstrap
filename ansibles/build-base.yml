@@ -9,7 +9,7 @@
     - role: debian.ptp_time
       when: not is_ct
     - debian.sudoers
-    - { role: "debian.rsyslog", rsyslog_host: "192.168.2.4" }
+    - debian.rsyslog
     - vim.setup
     - ssh.setup
     - role: debian.kerberos

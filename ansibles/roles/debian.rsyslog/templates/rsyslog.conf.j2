@@ -6,4 +6,4 @@ $ActionQueueFileName srvrfwd # set file name, also enables disk mode
 $ActionResumeRetryCount -1 # infinite retries on insert failure
 $ActionQueueSaveOnShutdown on # save in-memory data if rsyslog shuts down
 $PreserveFQDN on
-*.* :omrelp:{{ rsyslog_host }}:2514
+*.* :omrelp:{{ infra.rsyslog.host }}:2514
