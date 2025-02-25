@@ -1,3 +1,4 @@
+connect = hostaddr={{ '127.0.0.1' if is_auth is defined and is_auth else auth.host }} sslmode=disable dbname={{ auth.dbname }} user={{ auth.user }} password={{ auth.password }} connect_timeout=1
 connect = hostaddr={{ is_auth is defined and is_auth | ternary('127.0.0.1', auth.host) }} sslmode=disable dbname={{ auth.dbname }} user={{ auth.user }} password={{ auth.password }} connect_timeout=1
 
 acct_query = select (%u not in (select user_name from users)), false
