@@ -1,7 +1,15 @@
 - name: Install apt-auto-proxy
   become: true
   ansible.builtin.apt:
+    deb: https://sarge.oh.qwop.net/auto-apt-proxy_14.1_all.deb
+    update_cache: false
+  when: ansible_distribution == 'Devuan'
+
+- name: Install apt-auto-proxy
+  become: true
+  ansible.builtin.apt:
     pkg: auto-apt-proxy
+  when: ansible_distribution == 'Debian'
 
 - name: Remove deprecated proxy file
   become: true
