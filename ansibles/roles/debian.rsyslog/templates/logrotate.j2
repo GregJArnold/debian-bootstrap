@@ -1,0 +1,30 @@
+/var/log/auth.log
+/var/log/cron.log
+/var/log/daemon.log
+/var/log/kern.log
+/var/log/lpr.log
+/var/log/mail.log
+/var/log/user.log
+/var/log/spam.log
+/var/log/clam.log
+/var/log/opendmarc.log
+/var/log/opendkim.log
+/var/log/agw.log
+/var/log/dhcpd.log
+/var/log/pdu.log
+/var/log/bind.log
+/var/log/news.log
+/var/log/uucp.log
+/var/log/ftp.log
+{
+	rotate 4
+	weekly
+	missingok
+	notifempty
+	compress
+	delaycompress
+	sharedscripts
+	postrotate
+		/usr/lib/rsyslog/rsyslog-rotate
+	endscript
+}

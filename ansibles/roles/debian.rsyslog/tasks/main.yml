@@ -13,14 +13,24 @@
     owner: root
     group: root
   notify: "debian.rsyslog : Restart rsyslog"
-  when: not is_syslog_host
+  when: is_syslog_host is undefined or not is_syslog_host
 
 - name: Install rsyslog.conf
   become: true
   ansible.builtin.template:
-    src: "{{ is_syslog_host | ternary('templates/server.rsyslog.conf.j2', 'templates/rsyslog.conf.j2') }}"
+    src: "{{ (is_syslog_host is defined and is_syslog_host) | ternary('templates/server.rsyslog.conf.j2', 'templates/rsyslog.conf.j2') }}"
     dest: /etc/rsyslog.conf
     owner: root
     group: root
     mode: '0644'
   notify: "debian.rsyslog : Restart rsyslog"
+
+- name: Install rsyslog logrotate file
+  become: true
+  ansible.builtin.template:
+    src: templates/logrotate.j2
+    dest: /etc/logrotate.d/rsyslog
+    owner: root
+    group: root
+    mode: '0644'
+  when: is_syslog_host is defined and is_syslog_host
