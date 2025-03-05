@@ -1,0 +1,53 @@
+{
+
+"DhcpDdns": {
+	"ip-address": "127.0.0.1",
+	"port": 53001,
+	"control-socket": {
+		"socket-type": "unix",
+		"socket-name": "/run/kea/kea-ddns-ctrl-socket"
+	},
+	"tsig-keys": [
+		{
+			"name": "{{ dhcp.ddns.key.name }}",
+			"algorithm": "{{ dhcp.ddns.key.algorithm }}",
+			"secret": "{{ dhcp.ddns.key.secret }}"
+		}
+	],
+	"forward-ddns" : {
+		"ddns-domains": [
+			{
+				"name": "{{ dhcp.subnet.domain }}.",
+				"key-name": "{{ dhcp.ddns.key.name }}",
+				"dns-servers": [
+					{%- for server in dhcp.ddns.dnsServers +%}
+					{"ip-address": "{{ server }}"}{{ "" if loop.last else "," }}
+					{%- endfor +%}
+				]
+			}
+		]
+	},
+	"reverse-ddns" : {
+		"ddns-domains": [
+			{
+				"name": "{{ dhcp.subnet.subnet.split('.')[:3] | reverse | join('.') }}.in-addr.arpa.",
+				"key-name": "{{ dhcp.ddns.key.name }}",
+				"dns-servers": [
+					{%- for server in dhcp.ddns.dnsServers +%}
+					{"ip-address": "{{ server }}"}{{ "" if loop.last else "," }}
+					{%- endfor +%}
+				]
+			}
+		]
+	},
+
+	"loggers": [
+		{
+		"name": "kea-dhcp-ddns",
+		"output_options": [{"output": "syslog:local3", "pattern": "%-5p %m\n"}],
+		"severity": "INFO",
+		"debuglevel": 0
+		}
+	]
+}
+}

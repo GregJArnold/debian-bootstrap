@@ -1,0 +1,48 @@
+- name: Install Kea
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+      - kea-dhcp4-server
+      - kea-admin
+
+- name: Install Kea DDNS
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+      - kea-dhcp-ddns-server
+  when: dhcp.ddns is defined
+
+- name: Install config file
+  become: true
+  ansible.builtin.template:
+    src: templates/kea-dhcp4.conf.j2
+    dest: /etc/kea/kea-dhcp4.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: true
+  notify: "dhcp.server : Restart Kea"
+
+- name: Install DDNS config file
+  become: true
+  ansible.builtin.template:
+    src: templates/kea-dhcp-ddns.conf.j2
+    dest: /etc/kea/kea-dhcp-ddns.conf
+    owner: root
+    group: _kea
+    mode: 0640
+    backup: true
+  notify: "dhcp.server : Restart Kea DDNS"
+  when: dhcp.ddns is defined
+
+- name: Install updates initfile
+  become: true
+  ansible.builtin.template:
+    src: templates/init.j2
+    dest: /etc/init.d/kea-dhcp4-server
+    owner: root
+    group: root
+    mode: 0755
+  notify: "dhcp.server : Restart Kea"
