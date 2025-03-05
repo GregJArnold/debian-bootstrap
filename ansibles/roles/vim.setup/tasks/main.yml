@@ -3,7 +3,7 @@
 
 - name: Check for home directory
   ansible.builtin.stat:
-    path: ~
+    path: "$HOME"
   register: home_dir_exists
 
 - name: Install vim
