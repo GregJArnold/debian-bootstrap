@@ -13,6 +13,15 @@
     line: "listen_addresses = '*'   # what IP address(es) to listen on;"
   notify: "debian.postgres : Restart postgresql"
 
+- name: Increase number of connections
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/15/main/postgresql.conf
+    state: present
+    regexp: 'max_connections\s*='
+    line: "max_connections = 500     # (change requires restart)"
+  notify: "debian.postgres : Restart postgresql"
+
 - name: Add Kerberos keytab
   become: true
   ansible.builtin.lineinfile:
