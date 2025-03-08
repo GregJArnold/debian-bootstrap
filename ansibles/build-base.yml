@@ -5,11 +5,13 @@
     - apt-cache.proxy
     - debian.base
     - role: debian.notime
-      when: is_ct
+      when: is_ct is defined and is_ct
     - role: debian.ptp_time
-      when: not is_ct
+      when: is_ct is undefined or not is_ct
     - debian.sudoers
     - debian.rsyslog
+    - role: debian.ssmtp
+      when: is_do is undefined or not is_do
     - vim.setup
     - ssh.setup
     - role: debian.kerberos
