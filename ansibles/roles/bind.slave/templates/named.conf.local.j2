@@ -14,7 +14,7 @@ zone "."
 {% for zone in infra.bind.internalZones %}
 {% set z = zone
 	if zone is mapping
-	else {"zone": zone, "masters": ["192.168.2.4 key internal-key"]}
+	else {"zone": zone, "masters": ["192.168.2.3 key internal-key"]}
 %}
 
 zone "{{ z.zone }}"
