@@ -46,43 +46,25 @@ view "internal"
 		file "/usr/share/dns/root.hints";
 		};
 	{% for zone in infra.bind.internalZones %}
+	{% set z = zone
+		if zone is mapping
+		else {"zone": zone, "masters": ["192.168.2.3 key internal-key"]}
+	%}
 
-	zone "{{ zone }}"
+	zone "{{ z.zone }}"
 		{
-		file "{{ zone }}";
+		file "{{ z.zone }}";
 		type slave;
 		masterfile-format text;
 		notify no;
 		masters
 			{
-			192.168.2.4 key internal-key;
+			{%- for master in z.masters +%}
+			{{ master }};
+			{%- endfor +%}
 			};
 		};
 	{% endfor %}
-
-	zone "home.local"
-		{
-		file "home.local";
-		type slave;
-		masterfile-format text;
-		notify no;
-		masters
-			{
-			192.168.19.8;
-			};
-		};
-
-	zone "19.168.192.in-addr.arpa"
-		{
-		file "19.168.192.in-addr.arpa";
-		type slave;
-		masterfile-format text;
-		notify no;
-		masters
-			{
-			192.168.19.8;
-			};
-		};
 	};
 
 view "external"
@@ -93,6 +75,10 @@ view "external"
 		external;
 		};
 	{% for zone in infra.bind.externalZones %}
+	{% set z = zone
+		if zone is mapping
+		else {"zone": zone, "masters": ["192.168.2.3 key external-key"]}
+	%}
 
 	zone "{{ zone }}"
 		{
@@ -102,7 +88,9 @@ view "external"
 		notify no;
 		masters
 			{
-			192.168.2.4 key external-key;
+			{%- for master in z.masters +%}
+			{{ master }};
+			{%- endfor +%}
 			};
 		};
 	{% endfor %}
