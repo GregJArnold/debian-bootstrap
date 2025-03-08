@@ -1,0 +1,21 @@
+- name: Install SSMTP
+  become: true
+  ansible.builtin.apt:
+    pkg: ssmtp
+
+- name: Purge other MTAs
+  become: true
+  ansible.builtin.apt:
+    state: absent
+    purge: true
+    pkg:
+      - postfix
+      - exim4
+
+- name: Set mail host
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/ssmtp/ssmtp.conf
+    state: present
+    regexp: '^\s*#?\s*mailhub\s*='
+    line: mailhub=smtp.oh.qwop.net
