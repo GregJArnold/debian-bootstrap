@@ -48,6 +48,7 @@
   register: maps
 
 - name: Build maps
+  become: true
   ansible.builtin.shell: "postmap {{ item.dest }}"
   args:
     chdir: /etc/postfix
