@@ -1,6 +1,37 @@
 - import_playbook: build-base.yml
 
+- name: Set up Primary nameserver
+  hosts: ns0
+  roles:
+    - kerberos.master
+    - bind.master
+    - postgres.master
+
 - name: Set up Secondary nameserver
   hosts: ns2
   roles:
     - bind.slave
+
+- name: Set up Auth Services
+  hosts: auth
+  serial: 1
+  roles:
+    - postgres.slave
+    - postgres.keepalived
+    - kerberos.slave
+
+- name: Set up web server
+  hosts: web
+  roles:
+    - apache.server
+
+- name: Set up fax server
+  hosts: fax
+  roles:
+    - hylafax.server
+
+- name: Set up VLAN NTP servers
+  hosts: vlan_time
+  roles:
+    - role: debian.ntpsec
+      ntpsec_source: local
