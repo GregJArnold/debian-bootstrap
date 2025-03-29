@@ -1,0 +1,12 @@
+- name: Set private IP precedence
+  become: true
+  ansible.builtin.lineinfile:
+    regexp: '^\s*#?\s*precedence\s+{{ item }}'
+    state: present
+    line: 'precedence {{ item }} 100'
+    insertafter: 'precedence\s+::ffff:0:0/96'
+    path: /etc/gai.conf
+  loop:
+    - "::ffff:c0a8:0/112"
+    - "::ffff:a00:0/104"
+    - "::ffff:ac10:0/108"
