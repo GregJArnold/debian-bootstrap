@@ -6,9 +6,9 @@
     - gai.private
     - debian.base
     - role: debian.notime
-      when: is_ct is defined and is_ct
+      when: (is_ntp is undefined or not is_ntp) and (is_ct is defined and is_ct)
     - role: debian.ptp_time
-      when: is_ct is undefined or not is_ct
+      when: (is_ntp is undefined or not is_ntp) and (is_ct is undefined or not is_ct)
     - debian.sudoers
     - debian.rsyslog
     - role: debian.ssmtp
