@@ -23,3 +23,15 @@
     group: root
     mode: '0644'
   notify: "debian.ntpsec : Restart ntpsec"
+  when: ntpsec_source is undefined or ntpsec_source == "network"
+
+- name: Install local ntpsec.conf
+  become: true
+  ansible.builtin.copy:
+    src: files/ntp.conf
+    dest: /etc/ntpsec/ntp.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: "debian.ntpsec : Restart ntpsec"
+  when: ntpsec_source is defined and ntpsec_source == "local"
