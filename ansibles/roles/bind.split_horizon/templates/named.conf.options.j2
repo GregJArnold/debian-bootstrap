@@ -29,5 +29,8 @@ options
 		172.16.0.0/12;
 		192.168.0.0/16;
 		};
-	transfer-source 10.202.0.2;
+	{%- if infra.bind.transferSource[ansible_fqdn] is defined +%}
+
+	transfer-source {{ infra.bind.transferSource[ansible_fqdn] }};
+	{%- endif +%}
 	};
