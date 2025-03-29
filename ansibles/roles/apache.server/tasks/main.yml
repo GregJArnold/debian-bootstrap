@@ -1,0 +1,37 @@
+- name: Install web packages
+  become: true
+  ansible.builtin.apt:
+    install_recommends: false
+    update_cache: false
+    name:
+      - apache2
+      - certbot
+
+- name: Enable Apache Modules
+  become: true
+  community.general.apache2_module:
+    state: present
+    name: "{{ item }}"
+  notify: "apache.server : Restart apache"
+  loop:
+    - ssl
+    - rewrite
+    - proxy
+    - proxy_http
+    - include
+    - headers
+
+- name: Copy SSI config file
+  become: true
+  ansible.builtin.copy:
+    src: files/ssi.conf
+    dest: /etc/apache2/conf-available/ssi.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: "apache.server : Restart apache"
+
+- name: Enable Apache ssi
+  become: true
+  ansible.builtin.shell: "a2enconf ssi"
+  notify: "apache.server : Restart apache"
