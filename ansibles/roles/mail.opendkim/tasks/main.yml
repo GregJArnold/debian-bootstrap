@@ -1,8 +1,10 @@
-- name: Install OpenDKIM
+- name: Install OpenDKIM and ACL tools
   become: true
   ansible.builtin.apt:
     install_recommends: no
-    pkg: opendkim
+    pkg:
+      - opendkim
+      - acl
 
 - name: Add OpenDKIM to milter group
   become: true
@@ -41,6 +43,25 @@
     owner: root
     name: /etc/opendkim/keys
 
+- name: Set ACL for OpenDKIM key directory
+  become: true
+  ansible.posix.acl:
+    path: /etc/opendkim/keys
+    entity: opendkim
+    etype: user
+    permissions: rx
+    state: present
+
+- name: Set default ACL for OpenDKIM key directory
+  become: true
+  ansible.posix.acl:
+    path: /etc/opendkim/keys
+    entity: opendkim
+    etype: user
+    permissions: rx
+    state: present
+    default: true
+
 - name: Install OpenDKIM configuration
   become: true
   ansible.builtin.template:
@@ -63,4 +84,14 @@
     mode: 0640
     owner: root
     group: opendkim
+  loop: "{{ infra.mail[ansible_fqdn].domains }}"
+
+- name: Set ACL for OpenDKIM keys
+  become: true
+  ansible.posix.acl:
+    path: "/etc/opendkim/keys/{{ infra.mail[ansible_fqdn].shortName }}-{{ item }}.pem"
+    entity: opendkim
+    etype: user
+    permissions: r
+    state: present
   loop: "{{ infra.mail[ansible_fqdn].domains }}"
