@@ -19,3 +19,4 @@
       - git
       - dnsutils
       - net-tools
+      - bash-completion
