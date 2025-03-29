@@ -1,0 +1,11 @@
+- name: Restart KDC
+  become: true
+  ansible.builtin.service:
+    state: restarted
+    name: krb5-kdc
+
+- name: Restart kpropd
+  become: true
+  ansible.builtin.service:
+    state: restarted
+    name: krb5-kpropd
