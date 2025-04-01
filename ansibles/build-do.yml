@@ -4,10 +4,11 @@
   hosts: all
 
   roles:
+    - gai.private
     - debian.base
-    - role: "debian.ntpsec"
+    - role: debian.ntpsec
       hosts: ["time.nist.gov"]
     - debian.sudoers
-    - { role: "debian.rsyslog", rsyslog_host: "192.168.2.4" }
+    - debian.rsyslog
     - vim.setup
     - debian.kerberos
