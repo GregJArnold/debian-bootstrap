@@ -35,3 +35,8 @@
   roles:
     - role: debian.ntpsec
       ntpsec_source: local
+
+- name: Set up SMTP relay
+  hosts: smtp
+  roles:
+    - mail.postfix_relay

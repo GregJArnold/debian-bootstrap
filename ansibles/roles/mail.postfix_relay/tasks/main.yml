@@ -1,0 +1,22 @@
+- name: Install Postfix
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+      - postfix
+
+- name: Build DH file
+  become: true
+  ansible.builtin.shell: openssl dhparam -out /etc/postfix/dh2048.pem 2048
+  args:
+    creates: /etc/postfix/dh2048.pem
+ 
+- name: Configure Postfix
+  become: true
+  ansible.builtin.template:
+    src: templates/main.cf.j2
+    dest: /etc/postfix/main.cf
+    owner: root
+    group: root
+    mode: 0644
+  notify: "mail.postfix_relay : Restart Postfix"

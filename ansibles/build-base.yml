@@ -12,7 +12,7 @@
     - debian.sudoers
     - debian.rsyslog
     - role: debian.ssmtp
-      when: is_do is undefined or not is_do
+      when: is_mail_relay is undefined or not is_mail_relay
     - vim.setup
     - ssh.setup
     - role: debian.kerberos
