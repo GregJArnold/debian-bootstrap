@@ -1,5 +1,11 @@
 - import_playbook: build-base.yml
 
+- name: Set up Proxmox servers
+  hosts: proxmox
+  roles:
+    - role: debian.ntpsec
+      hosts: '{{ groups["proxmox"] }}'
+
 - name: Set up Primary nameserver
   hosts: ns0
   roles:
