@@ -1,0 +1,12 @@
+- name: Restart NUT Server
+  become: true
+  ansible.builtin.service:
+    name: nut-server
+    state: restarted
+  when: ups_master is defined and ups_master
+
+- name: Restart NUT Client
+  become: true
+  ansible.builtin.service:
+    name: nut-client
+    state: restarted

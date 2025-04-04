@@ -1,0 +1,66 @@
+- name: Install NUT
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg: nut-client
+
+- name: Install NUT Server
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg: nut-server
+  when: ups_master is defined and ups_master
+
+- name: Configure NUT mode
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/nut/nut.conf
+    state: present
+    regexp: '\s*#?\s*MODE='
+    line: "MODE={{ 'netserver' if ups_master is defined and ups_master else 'netclient' }}"
+  notify:
+    - "debian.nut : Restart NUT Server"
+    - "debian.nut : Restart NUT Client"
+
+- name: Configure UPS
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/nut/ups.conf
+    block: |
+      [{{ infra.nut.upsName }}]
+      driver = usbhid-ups
+      port = auto
+  when: ups_master is defined and ups_master
+  notify: "debian.nut : Restart NUT Server"
+
+- name: Configure NUT User
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/nut/upsd.users
+    block: |
+      [{{ infra.nut.monitorUser }}]
+        password = {{ infra.nut.monitorPass }}
+        upsmon master
+  when: ups_master is defined and ups_master
+  notify: "debian.nut : Restart NUT Server"
+
+- name: Set server to listen
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/nut/upsd.conf
+    state: present
+    regexp: '\s*#?\s*LISTEN * 3493'
+    line: "LISTEN * 3493"
+    insertafter: '\s*#?\s*LISTEN'
+  when: ups_master is defined and ups_master
+  notify: "debian.nut : Restart NUT Server"
+
+- name: Set up monitor
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/nut/upsmon.conf
+    state: present
+    regexp: '\s*#?\s*MONITOR {{ infra.nut.upsName }}@{{ infra.nut.upsHost }}'
+    line: "MONITOR {{ infra.nut.upsName }}@{{ infra.nut.upsHost }} 1 {{ infra.nut.monitorUser }} {{ infra.nut.monitorPass }} {{ 'master' if ups_master is defined and ups_master else 'slave' }}"
+    insertafter: '\s*#?\s*MONITOR'
+  notify: "debian.nut : Restart NUT Client"
