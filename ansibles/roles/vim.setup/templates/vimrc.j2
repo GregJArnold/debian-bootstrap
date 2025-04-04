@@ -6,7 +6,7 @@
 :set noswapfile
 :set mouse=h
 :autocmd BufEnter * set mouse=h
-:autocmd FileType yaml set et
+:autocmd FileType yaml set et | set sts=2
 :autocmd BufEnter * :syntax sync fromstart
 
 " Nice shortcuts for split-window mode
