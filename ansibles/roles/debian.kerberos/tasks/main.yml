@@ -19,7 +19,7 @@
 - name: Install libpam-pgsql
   become: true
   ansible.builtin.apt:
-    deb: https://sarge.oh.qwop.net/libpam-pgsql_0.7.3.2-1+b1_amd64.deb
+    deb: https://oh.qwop.net/libpam-pgsql_0.7.3.2-1+b1_amd64.deb
 
 - name: Install config files
   become: true
