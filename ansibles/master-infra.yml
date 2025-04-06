@@ -13,11 +13,21 @@
     - kerberos.master
     - bind.master
     - postgres.master
+    - stork.repo
+    - stork.agent
+
+- name: Set up Stork server
+  hosts: stork
+  roles:
+    - stork.repo
+    - stork.server
 
 - name: Set up Secondary nameserver
   hosts: ns2
   roles:
     - bind.slave
+    - stork.repo
+    - stork.agent
 
 - name: Set up Auth Services
   hosts: auth
@@ -47,3 +57,44 @@
   hosts: smtp
   roles:
     - mail.postfix_relay
+
+- name: Set up Camera DHCP server
+  hosts: camera_dhcp
+  roles:
+    - role: dhcp.server
+      dhcp:
+        v4Tag: "camera-DHCP4-server"
+    - kea.agent
+    - stork.repo
+    - stork.agent
+
+- name: Set up IoT DHCP server
+  hosts: iot_dhcp
+  roles:
+    - role: dhcp.server
+      dhcp:
+        v4Tag: "iot-DHCP4-server"
+        ddns:
+          forwardZones: ["iot.oh.qwop.net"]
+          reverseZones: ["254.168.192.in-addr.arpa"]
+          dnsServers: ["192.168.2.3"]
+          key: "iot-key"
+    - kea.agent
+    - stork.repo
+    - stork.agent
+
+- name: Set up Base DHCP server
+  hosts: dhcp
+  roles:
+    - role: dhcp.server
+      dhcp:
+        v4Tag: "main-DHCP4-server"
+        v6Tag: "main-DHCP6-server"
+        ddns:
+          forwardZones: ["dhcp.oh.qwop.net"]
+          reverseZones: ["2.168.192.in-addr.arpa"]
+          dnsServers: ["192.168.2.3"]
+          key: "dhcp-key"
+    - kea.agent
+    - stork.repo
+    - stork.agent
