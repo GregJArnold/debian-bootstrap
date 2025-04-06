@@ -1,4 +1,5 @@
 - import_playbook: build-base.yml
+  when: sm is not defined or not sm
 
 - name: Set up Proxmox servers
   hosts: proxmox
