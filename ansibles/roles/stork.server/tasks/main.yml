@@ -1,0 +1,7 @@
+- name: Install Stork Server
+  become: true
+  ansible.builtin.apt:
+    pkg:
+      - isc-stork-server
+    state: present
+    update_cache: true

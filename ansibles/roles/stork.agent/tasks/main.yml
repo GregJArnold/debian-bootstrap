@@ -1,0 +1,23 @@
+- name: Install Stork Agent
+  become: true
+  ansible.builtin.apt:
+    pkg:
+      - isc-stork-agent
+    state: present
+    update_cache: true
+
+- name: Install Stork initfile
+  become: true
+  ansible.builtin.copy:
+    src: files/isc-stork-agent
+    dest: /etc/init.d
+    owner: root
+    group: root
+    mode: 0755
+  when: ansible_distribution == 'Devuan'
+
+- name: Enable Stork agent
+  become: true
+  ansible.builtin.service:
+    enabled: true
+    name: isc-stork-agent

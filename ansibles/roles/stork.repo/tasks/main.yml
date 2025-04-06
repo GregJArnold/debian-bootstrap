@@ -1,0 +1,12 @@
+- name: Add Stork APT Key
+  become: true
+  ansible.builtin.get_url:
+    url: https://dl.cloudsmith.io/public/isc/stork/gpg.77F64EC28053D1FB.key
+    dest: /etc/apt/keyrings/stork.asc
+
+- name: Add Stork APT Repo
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/stork.asc] http://HTTPS///dl.cloudsmith.io/public/isc/stork/deb/debian bookworm main"
+    state: present
+    filename: stork

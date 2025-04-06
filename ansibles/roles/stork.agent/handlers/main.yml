@@ -1,0 +1,3 @@
+- name: Reconfigure Gitlab
+  become: true
+  ansible.builtin.shell: gitlab-ctl reconfigure
