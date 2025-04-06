@@ -1,7 +1,7 @@
 - name: Install apt-auto-proxy
   become: true
   ansible.builtin.apt:
-    deb: https://sarge.oh.qwop.net/auto-apt-proxy_14.1_all.deb
+    deb: https://oh.qwop.net/auto-apt-proxy_14.1_all.deb
     update_cache: false
   when: ansible_distribution == 'Devuan'
 
