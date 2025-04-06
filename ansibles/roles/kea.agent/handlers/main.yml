@@ -1,0 +1,5 @@
+- name: Restart Kea Agent
+  become: true
+  ansible.builtin.service:
+    name: kea-ctrl-agent
+    state: restarted

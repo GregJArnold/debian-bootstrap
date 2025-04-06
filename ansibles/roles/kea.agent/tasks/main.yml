@@ -1,0 +1,25 @@
+- name: Install Kea control agent
+  become: true
+  ansible.builtin.apt:
+    name: kea-ctrl-agent
+
+- name: Install updates initfile
+  become: true
+  ansible.builtin.copy:
+    src: files/kea-ctrl-agent
+    dest: /etc/init.d
+    owner: root
+    group: root
+    mode: 0755
+  notify: "kea.agent : Restart Kea Agent"
+  when: ansible_distribution == 'Devuan'
+
+- name: Install config file
+  become: true
+  ansible.builtin.template:
+    src: templates/kea-ctrl-agent.conf.j2
+    dest: /etc/kea/kea-crtl-agent.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: "kea.agent : Restart Kea Agent"

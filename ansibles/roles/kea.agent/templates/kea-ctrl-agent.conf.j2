@@ -1,0 +1,33 @@
+{
+"Control-agent": {
+	"http-host": "127.0.0.1",
+	"http-port": 8000,
+
+	"control-sockets": {
+		"dhcp4": {"socket-type": "unix", "socket-name": "/run/kea/kea4-ctrl-socket"},
+		"dhcp6": {"socket-type": "unix", "socket-name": "/run/kea/kea6-ctrl-socket"},
+		"d2": {"socket-type": "unix", "socket-name": "/run/kea/kea-ddns-ctrl-socket"}
+	},
+
+	// Specify hooks libraries that are attached to the Control Agent.
+	// Such hooks libraries should support 'control_command_receive'
+	// hook point. This is currently commented out because it has to
+	// point to the existing hooks library. Otherwise the Control
+	// Agent will fail to start.
+	"hooks-libraries": [
+		//{
+		//"library": "/usr/lib/x86_64-linux-gnu/kea/hooks/control-agent-commands.so",
+		//"parameters": {"param1": "foo"}
+		//}
+	],
+
+	"loggers": [
+		{
+		"name": "kea-ctrl-agent",
+		"output_options": [{"output": "syslog.local3", "pattern": "%-5p %m\n"}],
+		"severity": "INFO",
+		"debuglevel": 0
+		}
+	]
+}
+}
