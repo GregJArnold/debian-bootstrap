@@ -6,13 +6,14 @@
      - bind9-host
      - bind9
 
-- name: Create sz directory
+- name: Create slave-zone directory
   become: true
   ansible.builtin.file:
-    path: /var/cache/bind/sz
-    state: directory
+    name: /var/cache/bind/sz
+    mode: 0755
     owner: bind
     group: bind
+    state: directory
 
 - name: Set up zones
   become: true
