@@ -1,5 +1,4 @@
 {
-
 "DhcpDdns": {
 	"ip-address": "127.0.0.1",
 	"port": 53001,
@@ -9,35 +8,39 @@
 	},
 	"tsig-keys": [
 		{
-			"name": "{{ dhcp.ddns.key.name }}",
-			"algorithm": "{{ dhcp.ddns.key.algorithm }}",
-			"secret": "{{ dhcp.ddns.key.secret }}"
+			"name": "{{ dhcp.ddns.key }}",
+			"algorithm": "{{ infra.dhcp.ddnsKeys[dhcp.ddns.key].algorithm }}",
+			"secret": "{{ infra.dhcp.ddnsKeys[dhcp.ddns.key].secret }}"
 		}
 	],
 	"forward-ddns" : {
 		"ddns-domains": [
+			{%- for z in dhcp.ddns.forwardZones +%}
 			{
-				"name": "{{ dhcp.subnet.domain }}.",
-				"key-name": "{{ dhcp.ddns.key.name }}",
+				"name": "{{ z }}.",
+				"key-name": "{{ dhcp.ddns.key }}",
 				"dns-servers": [
 					{%- for server in dhcp.ddns.dnsServers +%}
 					{"ip-address": "{{ server }}"}{{ "" if loop.last else "," }}
 					{%- endfor +%}
 				]
-			}
+			}{{ "" if loop.last else "," }}
+			{%- endfor +%}
 		]
 	},
 	"reverse-ddns" : {
 		"ddns-domains": [
+			{%- for z in dhcp.ddns.reverseZones +%}
 			{
-				"name": "{{ dhcp.subnet.subnet.split('.')[:3] | reverse | join('.') }}.in-addr.arpa.",
-				"key-name": "{{ dhcp.ddns.key.name }}",
+				"name": "{{ z }}.",
+				"key-name": "{{ dhcp.ddns.key }}",
 				"dns-servers": [
 					{%- for server in dhcp.ddns.dnsServers +%}
 					{"ip-address": "{{ server }}"}{{ "" if loop.last else "," }}
 					{%- endfor +%}
 				]
-			}
+			}{{ "" if loop.last else "," }}
+			{%- endfor +%}
 		]
 	},
 

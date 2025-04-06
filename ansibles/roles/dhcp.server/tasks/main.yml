@@ -1,10 +1,20 @@
-- name: Install Kea
+- name: Install Kea v4
   become: true
   ansible.builtin.apt:
     install_recommends: no
     pkg:
       - kea-dhcp4-server
       - kea-admin
+  when: dhcp.v4Tag is defined
+
+- name: Install Kea v6
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+      - kea-dhcp6-server
+      - kea-admin
+  when: dhcp.v6Tag is defined
 
 - name: Install Kea DDNS
   become: true
@@ -14,7 +24,7 @@
       - kea-dhcp-ddns-server
   when: dhcp.ddns is defined
 
-- name: Install config file
+- name: Install v4 config file
   become: true
   ansible.builtin.template:
     src: templates/kea-dhcp4.conf.j2
@@ -23,7 +33,20 @@
     group: root
     mode: 0644
     backup: true
-  notify: "dhcp.server : Restart Kea"
+  notify: "dhcp.server : Restart Kea v4"
+  when: dhcp.v4Tag is defined
+
+- name: Install v6 config file
+  become: true
+  ansible.builtin.template:
+    src: templates/kea-dhcp6.conf.j2
+    dest: /etc/kea/kea-dhcp6.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: true
+  notify: "dhcp.server : Restart Kea v6"
+  when: dhcp.v6Tag is defined
 
 - name: Install DDNS config file
   become: true
@@ -45,4 +68,5 @@
     owner: root
     group: root
     mode: 0755
-  notify: "dhcp.server : Restart Kea"
+  notify: "dhcp.server : Restart Kea v4"
+  when: dhcp.v4Tag is defined and ansible_distribution == 'Devuan'
