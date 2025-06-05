@@ -1,0 +1,195 @@
+# BirdNET-Go configuration
+
+debug: false              # print debug messages, can help with problem solving
+
+# Node specific settings
+main:
+  name: {{ birdnet.name }} # name of node, can be used to identify source of notes
+  timeas24h: true         # true for 24-hour time format, false for 12-hour time format
+  log:
+    enabled: true         # true to enable log file
+    path: birdnet.log     # path to log file
+    rotation: daily       # daily, weekly or size
+    maxsize: 1048576      # max size in bytes for size rotation
+    rotationday: "Sunday" # day of the week for weekly rotation, 0 = Sunday
+
+# BirdNET model specific settings
+birdnet:
+  sensitivity: 1.0        # sigmoid sensitivity, 0.1 to 1.5
+  threshold: 0.8          # threshold for prediction confidence to report, 0.0 to 1.0
+  overlap: 1.5            # overlap between chunks, 0.0 to 2.9
+  threads: 0              # 0 to use all available CPU threads
+  locale: en-us           # language to use for labels
+  latitude: {{ birdnet.latitude }}       # latitude of recording location for prediction filtering
+  longitude: {{ birdnet.longitude }}       # longitude of recording location for prediction filtering
+  rangefilter:
+      model: latest       # model to use for range filter: "latest" or "legacy" for previous model
+      threshold: 0.01     # rangefilter species occurrence threshold
+  modelpath: ""           # path to external model file (empty for embedded)
+  labelpath: ""           # path to external label file (empty for embedded)
+  usexnnpack: true        # true to use XNNPACK delegate for inference acceleration
+
+# Realtime processing settings
+realtime:
+  interval: 15            # duplicate prediction interval in seconds
+  processingtime: false   # true to report processing time for each prediction
+  
+  audio:
+    source: "sysdefault"  # audio source to use for analysis
+    equalizer:
+      enabled: false
+      filters:
+        - type: HighPass
+          frequency: 100
+          passes: 0 
+        - type: LowPass
+          frequency: 15000
+          passes: 0 
+    export:
+      enabled: true       # true to export audio clips containing indentified bird calls
+      debug: false        # true to enable audio export debug messages
+      path: clips/        # path to audio clip export directory
+      type: wav           # wav, flac, aac, opus, mp3. Formats other than wav require ffmpeg.
+      bitrate: 96k        # bitrate for aac and opus exports
+      retention:
+        policy: usage     # retention policy: none, age or usage
+        maxage: 30d       # age policy: maximum age of clips to keep before starting evictions
+        maxusage: 80%     # usage policy: percentage of disk usage to trigger eviction        
+        minclips: 10      # minumum number of clips per species to keep before starting evictions
+        keepspectrograms: true # true to keep spectrograms even when clips are deleted
+
+
+  dashboard:
+    thumbnails:
+      debug: false        # true to enable debug mode for image provider
+      summary: false      # show thumbnails on summary table
+      recent: true        # show thumbnails on recent table
+      imageprovider: auto # preferred image provider: auto, wikimedia, avicommons
+      fallbackpolicy: all # fallback policy: none (no fallback), all (try all available providers)
+ 
+  dynamicthreshold:
+    enabled: true         # true to enable dynamic confidence threshold
+    trigger: 0.90         # dynamic threshold is activated on detections at this confidence level
+    min: 0.20             # dynamic threshold will not go lower than this
+    validhours: 24        # number of hours to consider for dynamic confidence
+
+  rtsp:    
+    transport: tcp        # RTSP Transport Protocol
+    urls:                 # RTSP stream URLs
+      # - rtsp://user:password@example.com/stream1
+      # - rtsp://user:password@example.com/stream2
+      # - rtsp://user:password@example.com/stream3
+  
+  log:
+    enabled: false        # true to enable OBS chat log
+    path: birdnet.txt     # path to OBS chat log
+
+  birdweather:
+    enabled: {{ "true" if birdnet.birdweather else "false" }}        # true to enable birdweather uploads
+    locationaccuracy: 500 # accuracy of location in meters
+    debug: false          # true to enable birdweather api debug mode
+    id: "{{ birdnet.birdweather }}"                # birdweather ID
+    retrysettings:
+      enabled: true       # enable retry for failed submissions
+      maxretries: 3       # maximum number of retry attempts
+      initialdelay: 30    # initial delay before first retry in seconds
+      maxdelay: 600       # maximum delay between retries in seconds
+      backoffmultiplier: 2.0  # multiplier for exponential backoff
+
+  weather:
+    provider: yrno
+    pollinterval: 60
+    debug: false
+    openweather:
+      apikey: ""        # OpenWeather API key
+      endpoint: "https://api.openweathermap.org/data/2.5/weather" # OpenWeather API endpoint
+      units: metric     # metric or imperial
+      language: en      # language code
+
+  mqtt:
+    enabled: false        # true to enable MQTT
+    debug: false          # true to enable MQTT debug
+    broker: tcp://localhost:1883 # MQTT (tcp://host:port)
+    topic: birdnet        # MQTT topic
+    username: birdnet     # MQTT username
+    password: secret      # MQTT password
+    retain: false         # true to retain messages
+    retrysettings:
+      enabled: true       # enable retry for failed publications
+      maxretries: 3       # maximum number of retry attempts
+      initialdelay: 10    # initial delay before first retry in seconds
+      maxdelay: 300       # maximum delay between retries in seconds
+      backoffmultiplier: 2.0  # multiplier for exponential backoff
+
+  privacyfilter:          # Privacy filter prevents audio clip saving if human voice 
+    enabled: true         # is detected durin audio capture
+    confidence: 0.05      # threshold for human voice detection
+
+  dogbarkfilter:
+    enabled: true
+    confidence: 0.1       # confidence threshold for dog bark detection
+    remember: 5           # number of minutes to remember dog barks
+
+  telemetry:
+    enabled: false         # true to enable Prometheus compatible telemetry endpoint
+    listen: "0.0.0.0:8090" # IP address and port to listen on
+
+  # Species-specific configurations
+  species:
+    include: []           # Always include these species regardless of confidence
+    exclude: []           # Always exclude these species regardless of confidence
+    config:
+
+webserver:
+  enabled: true           # true to enable web server
+  port: 8080              # port for web server
+  log:
+    enabled: false        # true to enable log file
+    path: webui.log       # path to log file
+    rotation: daily       # daily, weekly or size
+    maxsize: 1048576      # max size in bytes for size rotation
+    rotationday: 0        # day of the week for weekly rotation, 0 = Sunday
+
+security:
+  host: ""                   # host and port for autoTLS and authentication
+  autotls: false             # true to enable auto TLS, only host is whitelisted
+  redirecttohttps: false     # true to redirect http to https
+  allowsubnetbypass:
+    enabled: false           # true to disable OAuth in subnet
+    subnet: ""               # comma-separated list of CIDR ranges (e.g., "192.168.1.0/24,10.0.0.0/8")
+  basicauth:
+    enabled: false           # true to enable basic auth
+    password: ""             # password hash for the settings interface
+    clientid: ""             # client id
+    clientsecret: ""         # if left empty, will be autogenerated
+    redirecturi: ""          # redirect uri prefix
+    authcodeexp: 10m           # authorization code expiration
+    accesstokenexp: 1h        # access token expiration
+  googleauth:
+    enabled: false           # true to enable Google OAuth2
+    clientid: ""             # client id
+    clientsecret: ""         # client secret
+    userid: ""               # user id
+  githubauth:
+    enabled: false           # true to enable GitHub OAuth2
+    clientid: ""             # client id
+    clientsecret: ""         # client secret
+    userid: ""               # user id# Ouput settings
+
+output:
+  file:
+    enabled: true         # true to enable file output for file and directory analysis
+    path: output/         # path to output directory
+    type: table           # ouput format, Raven table or csv
+  # Only one database is supported at a time
+  # if both are enabled, SQLite will be used.
+  sqlite:
+    enabled: false        # true to enable sqlite output
+    path: birdnet.db      # path to sqlite database
+  mysql:
+    enabled: true         # true to enable mysql output
+    username: {{ birdnet.database.user }}     # mysql database username
+    password: {{ birdnet.database.password }}      # mysql database user password
+    database: {{ birdnet.database.database }}     # mysql database name
+    host: {{ birdnet.database.host }}      # mysql database host
+    port: 3306            # mysql database port

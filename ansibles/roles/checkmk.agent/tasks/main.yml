@@ -1,0 +1,47 @@
+- name: Purge Zabbix
+  become: true
+  ansible.builtin.apt:
+    pkg: zabbix-agent2
+    purge: true
+    state: absent
+
+- name: Purge Zabbix repo
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/zabbix-official-repo-apr2024.gpg] https://repo.zabbix.com/zabbix/7.0/debian bookworm main"
+    state: absent
+    filename: zabbix
+
+- name: Purge Zabbix keyring
+  become: true
+  ansible.builtin.file:
+    path: /etc/apt/keyrings/zabbix-official-repo-apr2024.gpg
+    state: absent
+
+- name: Gather installed package facts
+  ansible.builtin.package_facts:
+
+- name: Install xinetd on Devuan
+  become: true
+  ansible.builtin.apt:
+    name: xinetd
+    state: present
+  when: ansible_distribution == 'Devuan'
+
+- name: Install CheckMK Agent
+  become: true
+  ansible.builtin.apt:
+    deb: http://checkmk.oh.qwop.net/loveland/check_mk/agents/check-mk-agent_2.4.0p2-1_all.deb
+  when: "'check-mk-agent' not in ansible_facts.packages"
+
+- name: Check cmk-agent-ctl status
+  become: true
+  ansible.builtin.command: cmk-agent-ctl status
+  register: cmk_status
+  changed_when: false
+
+- name: Register CheckMK Agent
+  become: true
+  ansible.builtin.command: >
+    cmk-agent-ctl register --hostname {{ ansible_fqdn }} --server {{ infra.checkmk.server }} --site {{ infra.checkmk.site }} --user {{ infra.checkmk.user }} --trust-cert --password {{ infra.checkmk.password }}
+  when: "'No connections' in cmk_status.stdout" and ansible_distribution != 'Devuan'

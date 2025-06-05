@@ -6,6 +6,7 @@
   roles:
     - role: debian.ntpsec
       hosts: '{{ groups["proxmox"] }}'
+    - checkmk.agent
 
 - name: Set up Primary nameserver
   hosts: ns0
@@ -98,3 +99,19 @@
     - kea.agent
     - stork.repo
     - stork.agent
+
+- name: Set up GitLab Runner
+  hosts: gitlab_runner
+  roles:
+    - gitlab.runner
+
+- name: Set up CheckMK Server
+  hosts: checkmk
+  roles:
+    - checkmk.server
+    - checkmk.agent
+
+- name: Set up BirdNET server
+  hosts: birdnet
+  roles:
+    - birdnet-go.server

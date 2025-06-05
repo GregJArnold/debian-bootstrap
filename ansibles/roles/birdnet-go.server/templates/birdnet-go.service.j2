@@ -1,0 +1,14 @@
+[Unit]
+Description=BirdNET-Go Service
+After=network.target
+
+[Service]
+User=birdnet
+Group=birdnet
+WorkingDirectory=/opt/birdnet
+Environment=LD_LIBRARY_PATH=/opt/birdnet
+ExecStart=/opt/birdnet/birdnet-go realtime
+Restart=always
+
+[Install]
+WantedBy=multi-user.target 

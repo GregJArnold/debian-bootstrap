@@ -1,0 +1,8 @@
+- name: Gather installed package facts
+  ansible.builtin.package_facts:
+
+- name: Install CheckMK Server
+  become: true
+  ansible.builtin.apt:
+    deb: https://download.checkmk.com/checkmk/2.4.0p2/check-mk-raw-2.4.0p2_0.bookworm_amd64.deb
+  when: "'check-mk-raw-2.4.0p2' not in ansible_facts.packages"

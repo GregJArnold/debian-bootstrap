@@ -1,0 +1,101 @@
+- name: Install ffmpeg package
+  become: true
+  ansible.builtin.apt:
+    name:
+      - ffmpeg
+      - sox
+    state: present
+
+- name: Create system user birdnet
+  become: true
+  ansible.builtin.user:
+    name: birdnet
+    system: yes
+    home: /opt/birdnet
+    create_home: no
+
+- name: Add birdnet user to audio group
+  become: true
+  ansible.builtin.user:
+    name: birdnet
+    groups: audio
+    append: yes
+    create_home: no
+
+- name: Check if /opt/birdnet exists
+  ansible.builtin.stat:
+    path: /opt/birdnet
+  register: birdnet_dir
+
+- name: Create /opt/birdnet directory
+  become: true
+  ansible.builtin.file:
+    path: /opt/birdnet
+    state: directory
+    owner: birdnet
+    group: birdnet
+    mode: "0755"
+  when: not birdnet_dir.stat.exists
+
+- name: Download birdnet-go archive
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ birdnet_archive_url }}"
+    dest: /tmp/birdnet-go.tar.gz
+    mode: "0644"
+  when: not birdnet_dir.stat.exists
+
+- name: Extract birdnet-go archive
+  become: true
+  ansible.builtin.unarchive:
+    src: /tmp/birdnet-go.tar.gz
+    dest: /opt/birdnet
+    remote_src: yes
+    owner: birdnet
+    group: birdnet
+  when: not birdnet_dir.stat.exists
+
+- name: Remove downloaded archive
+  become: true
+  ansible.builtin.file:
+    path: /tmp/birdnet-go.tar.gz
+    state: absent
+  when: not birdnet_dir.stat.exists
+
+- name: Create config directory
+  become: true
+  ansible.builtin.file:
+    path: /opt/birdnet/.config/birdnet-go
+    state: directory
+    owner: birdnet
+    group: birdnet
+    mode: "0755"
+
+- name: Copy config.yaml template
+  become: true
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /opt/birdnet/.config/birdnet-go/config.yaml
+    owner: birdnet
+    group: birdnet
+    mode: "0644"
+
+- name: Create systemd service for birdnet-go
+  become: true
+  ansible.builtin.template:
+    src: birdnet-go.service.j2
+    dest: /etc/systemd/system/birdnet-go.service
+    mode: "0644"
+  notify: reload systemd
+
+- name: Enable birdnet-go service
+  become: true
+  ansible.builtin.systemd:
+    name: birdnet-go
+    enabled: yes
+
+- name: Start birdnet-go service
+  become: true
+  ansible.builtin.systemd:
+    name: birdnet-go
+    state: started
