@@ -31,8 +31,17 @@
 - name: Install CheckMK Agent
   become: true
   ansible.builtin.apt:
-    deb: http://checkmk.oh.qwop.net/loveland/check_mk/agents/check-mk-agent_2.4.0p2-1_all.deb
+    deb: "http://{{ infra.checkmk.server }}/{{ infra.checkmk.site }}/check_mk/agents/check-mk-agent_{{ version }}_all.deb"
   when: "'check-mk-agent' not in ansible_facts.packages"
+
+- name: Install CheckMK Plugins
+  become: true
+  ansible.builtin.get_url:
+    url: "http://{{ infra.checkmk.server }}/{{ infra.checkmk.site }}/check_mk/agents/plugins/{{ item }}"
+    dest: "/usr/lib/check_mk_agent/plugins/{{ item }}"
+    mode: "0755"
+  loop: "{{ checkmk_plugins }}"
+  when: "checkmk_plugins is defined"
 
 - name: Check cmk-agent-ctl status
   become: true
@@ -44,4 +53,4 @@
   become: true
   ansible.builtin.command: >
     cmk-agent-ctl register --hostname {{ ansible_fqdn }} --server {{ infra.checkmk.server }} --site {{ infra.checkmk.site }} --user {{ infra.checkmk.user }} --trust-cert --password {{ infra.checkmk.password }}
-  when: "'No connections' in cmk_status.stdout" and ansible_distribution != 'Devuan'
+  when: "'No connections' in cmk_status.stdout and ansible_distribution != 'Devuan'"
