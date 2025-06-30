@@ -2,3 +2,9 @@
   become: true
   ansible.builtin.systemd:
     daemon_reload: yes
+
+- name: restart birdnet-go
+  become: true
+  ansible.builtin.systemd:
+    name: birdnet-go
+    state: restarted

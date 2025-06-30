@@ -1,1 +1,2 @@
-birdnet_archive_url: https://github.com/tphakala/birdnet-go/releases/download/nightly-20250602/birdnet-go-linux-amd64.tar.gz
+birdnet_version: "nightly-20250629"
+birdnet_archive_url: "https://github.com/tphakala/birdnet-go/releases/download/{{ birdnet_version }}/birdnet-go-linux-amd64.tar.gz"

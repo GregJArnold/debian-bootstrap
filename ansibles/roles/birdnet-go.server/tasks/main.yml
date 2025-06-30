@@ -22,11 +22,6 @@
     append: yes
     create_home: no
 
-- name: Check if /opt/birdnet exists
-  ansible.builtin.stat:
-    path: /opt/birdnet
-  register: birdnet_dir
-
 - name: Create /opt/birdnet directory
   become: true
   ansible.builtin.file:
@@ -35,7 +30,13 @@
     owner: birdnet
     group: birdnet
     mode: "0755"
-  when: not birdnet_dir.stat.exists
+
+- name: Read currently installed version
+  become: true
+  ansible.builtin.slurp:
+    src: /opt/birdnet/version
+  register: current_version
+  ignore_errors: yes
 
 - name: Download birdnet-go archive
   become: true
@@ -43,7 +44,7 @@
     url: "{{ birdnet_archive_url }}"
     dest: /tmp/birdnet-go.tar.gz
     mode: "0644"
-  when: not birdnet_dir.stat.exists
+  when: current_version.content is not defined or (current_version.content | b64decode | trim) != birdnet_version
 
 - name: Extract birdnet-go archive
   become: true
@@ -53,14 +54,15 @@
     remote_src: yes
     owner: birdnet
     group: birdnet
-  when: not birdnet_dir.stat.exists
+  when: current_version.content is not defined or (current_version.content | b64decode | trim) != birdnet_version
+  notify: restart birdnet-go
 
 - name: Remove downloaded archive
   become: true
   ansible.builtin.file:
     path: /tmp/birdnet-go.tar.gz
     state: absent
-  when: not birdnet_dir.stat.exists
+  when: current_version.content is not defined or (current_version.content | b64decode | trim) != birdnet_version
 
 - name: Create config directory
   become: true
@@ -79,6 +81,7 @@
     owner: birdnet
     group: birdnet
     mode: "0644"
+    backup: true
 
 - name: Create systemd service for birdnet-go
   become: true
@@ -99,3 +102,12 @@
   ansible.builtin.systemd:
     name: birdnet-go
     state: started
+
+- name: Write installed version to file
+  become: true
+  ansible.builtin.copy:
+    content: "{{ birdnet_version }}"
+    dest: /opt/birdnet/version
+    owner: birdnet
+    group: birdnet
+    mode: "0644"
