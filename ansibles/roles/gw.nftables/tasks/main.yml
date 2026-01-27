@@ -1,0 +1,35 @@
+- name: Install netfilter-persistent package
+  become: true
+  ansible.builtin.apt:
+    name: netfilter-persistent
+    state: present
+
+- name: Copy nftables.conf from local secrets
+  become: true
+  ansible.builtin.copy:
+    src: "~/secrets/nftables.conf"
+    dest: /etc/nftables.conf
+    remote_src: no
+    mode: "0644"
+    owner: root
+    group: root
+  register: nftables_config
+
+- name: Copy 15-nft plugin
+  become: true
+  ansible.builtin.copy:
+    src: files/15-nft
+    dest: /usr/share/netfilter-persistent/plugins.d/15-nft
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Flush nftables
+  become: true
+  ansible.builtin.command: netfilter-persistent flush
+  when: nftables_config.changed
+
+- name: Start nftables
+  become: true
+  ansible.builtin.command: netfilter-persistent start
+  when: nftables_config.changed
