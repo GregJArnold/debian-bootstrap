@@ -30,20 +30,27 @@
     group: ollama
     mode: 0770
 
-#- name: Download Ollama
-#  become: true
-#  ansible.builtin.get_url:
-#    url: https://ollama.com/download/ollama-linux-amd64.tgz
-#    dest: /opt/ollama
+- name: Install zstd
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg:
+      - zstd
 
-#- name: Unpack ollama
-#  become: true
-#  ansible.builtin.unarchive:
-#    src: /opt/ollama/ollama-linux-amd64.tgz
-#    dest: /opt/ollama
-#    remote_src: true
-#    owner: ollama
-#    group: ollama
+- name: Download Ollama
+  become: true
+  ansible.builtin.get_url:
+    url: https://ollama.com/download/ollama-linux-amd64.tar.zst
+    dest: /opt/ollama
+
+- name: Unpack ollama
+  become: true
+  ansible.builtin.unarchive:
+    src: /opt/ollama/ollama-linux-amd64.tar.zst
+    dest: /opt/ollama
+    remote_src: true
+    owner: ollama
+    group: ollama
 
 - name: Build ollama systemd file
   become: true
