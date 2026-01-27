@@ -4,10 +4,26 @@
     install_recommends: no
     pkg: postgresql
 
+- name: Install vectorized postgres
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    pkg: "postgresql-{{ postgres_version }}-pgvector"
+  when: vector is defined and vector
+  notify: "debian.postgres : Restart postgresql"
+
+- name: Install VectorChord
+  become: true
+  ansible.builtin.apt:
+    install_recommends: no
+    deb: https://github.com/tensorchord/VectorChord/releases/download/0.5.2/postgresql-17-vchord_0.5.2-1_amd64.deb
+  when: vector is defined and vector
+  notify: "debian.postgres : Restart postgresql"
+
 - name: Listen on all addresses
   become: true
   ansible.builtin.lineinfile:
-    path: /etc/postgresql/15/main/postgresql.conf
+    path: "/etc/postgresql/{{ postgres_version }}/main/postgresql.conf"
     state: present
     regexp: 'listen_addresses\s*='
     line: "listen_addresses = '*'   # what IP address(es) to listen on;"
@@ -16,7 +32,7 @@
 - name: Increase number of connections
   become: true
   ansible.builtin.lineinfile:
-    path: /etc/postgresql/15/main/postgresql.conf
+    path: "/etc/postgresql/{{ postgres_version }}/main/postgresql.conf"
     state: present
     regexp: 'max_connections\s*='
     line: "max_connections = 500     # (change requires restart)"
@@ -25,7 +41,7 @@
 - name: Add Kerberos keytab
   become: true
   ansible.builtin.lineinfile:
-    path: /etc/postgresql/15/main/postgresql.conf
+    path: "/etc/postgresql/{{ postgres_version }}/main/postgresql.conf"
     state: present
     regexp: 'krb_server_keyfile\s*='
     line: "krb_server_keyfile = 'FILE:/etc/postgresql/postgres.keytab'"
@@ -34,7 +50,7 @@
 - name: Allow Kerberos auth
   become: true
   ansible.builtin.lineinfile:
-    path: /etc/postgresql/15/main/pg_hba.conf
+    path: "/etc/postgresql/{{ postgres_version }}/main/pg_hba.conf"
     state: present
     line: "hostgssenc      all     all             samenet                 gss include_realm=0 krb_realm=OH.QWOP.NET"
   notify: "debian.postgres : Restart postgresql"
@@ -42,7 +58,7 @@
 - name: Allow non-Kerberos auth
   become: true
   ansible.builtin.lineinfile:
-    path: /etc/postgresql/15/main/pg_hba.conf
+    path: "/etc/postgresql/{{ postgres_version }}/main/pg_hba.conf"
     state: present
     line: "hostnogssenc    all     all             samenet                 scram-sha-256"
   notify: "debian.postgres : Restart postgresql"
