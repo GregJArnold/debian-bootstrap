@@ -3,7 +3,6 @@
   ansible.builtin.apt:
     pkg:
       - krb5-user
-      - libnss-pgsql2
       - libpam-krb5
     install_recommends: no
 
@@ -16,10 +15,15 @@
     insertafter: '[libdefaults]'
     path: /etc/krb5.conf
 
-- name: Install libpam-pgsql
+- name: Install Postgres PAM package
   become: true
   ansible.builtin.apt:
     deb: https://oh.qwop.net/libpam-pgsql_0.7.3.2-1+b1_amd64.deb
+
+- name: Install Postgres NSS package
+  become: true
+  ansible.builtin.apt:
+    deb: https://oh.qwop.net/libnss-pgsql2_1.4.0debian-8+b2_amd64.deb
 
 - name: Install config files
   become: true
