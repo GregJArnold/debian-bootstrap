@@ -2,8 +2,9 @@
   hosts: all
 
   roles:
-    - apt-cache.proxy
     - gai.private
+    - debian.nocd
+    - apt-cache.proxy
     - debian.base
     - role: debian.notime
       when: (is_ntp is undefined or not is_ntp) and (is_ct is defined and is_ct)

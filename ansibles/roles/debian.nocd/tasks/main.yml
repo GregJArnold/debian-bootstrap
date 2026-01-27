@@ -1,0 +1,13 @@
+- name: Check if sources.list exists
+  become: true
+  ansible.builtin.stat:
+    path: /etc/apt/sources.list
+  register: sources_list_stat
+
+- name: Remove CD-ROM entries from sources.list
+  become: true
+  ansible.builtin.replace:
+    path: /etc/apt/sources.list
+    regexp: "^deb cdrom:.*$"
+    replace: ""
+  when: sources_list_stat.stat.exists
