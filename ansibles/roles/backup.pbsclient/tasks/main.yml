@@ -1,15 +1,17 @@
 - name: Add Proxmox APT Key
   become: true
   ansible.builtin.get_url:
-    url: https://enterprise.proxmox.com/debian/proxmox-release-bookworm.gpg
-    dest: /etc/apt/keyrings/proxmox.gpg
+    url: https://enterprise.proxmox.com/debian/proxmox-archive-keyring-trixie.gpg
+    dest: /usr/share/keyrings/proxmox-archive-keyring.gpg
 
-- name: Add Proxmox Client APT Repo
+- name: Add PBS Client repo
   become: true
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/proxmox.gpg] http://download.proxmox.com/debian/pbs-client bookworm main"
-    state: present
-    filename: proxmox-client
+  deb822_repository:
+    name: proxmox-client
+    uris: http://download.proxmox.com/debian/pbs-client
+    suites: trixie
+    components: main
+    signed_by: /usr/share/keyrings/proxmox-archive-keyring.gpg
 
 - name: Install Proxmox Backup Client
   become: true
