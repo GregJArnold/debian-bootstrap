@@ -47,6 +47,25 @@
     state: absent
   when: not slapd_instance_dir.stat.exists
 
+- name: Check if 60sudo.ldif exists in slapd schema directory
+  become: true
+  ansible.builtin.stat:
+    path: "/etc/dirsrv/slapd-{{ infra.ldap.name }}/schema/60sudo.ldif"
+  register: sudo_ldif_in_slapd
+  when: slapd_instance_dir.stat.exists
+
+- name: Copy 60sudo.ldif from package schema to slapd
+  become: true
+  ansible.builtin.copy:
+    src: /usr/share/dirsrv/schemas/60sudo.ldif
+    dest: "/etc/dirsrv/slapd-{{ infra.ldap.name }}/schema/60sudo.ldif"
+    owner: dirsrv
+    group: dirsrv
+    mode: "0640"
+    remote_src: true
+  when: slapd_instance_dir.stat.exists and not sudo_ldif_in_slapd.stat.exists
+  notify: "ldap.master : Restart LDAP server"
+
 - name: Create .dsrc file
   become: true
   ansible.builtin.template:
