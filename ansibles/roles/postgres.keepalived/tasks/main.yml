@@ -8,14 +8,9 @@
 - name: Install keepalived config file
   become: true
   ansible.builtin.template:
-    src: 'templates/keepalived.conf.j2'
+    src: "templates/keepalived.conf.j2"
     dest: /etc/keepalived/keepalived.conf
     owner: root
     group: root
-    mode: '0644'
-
-- name: Restart keepalived
-  become: true
-  ansible.builtin.service:
-    name: keepalived
-    state: restarted
+    mode: "0644"
+  notify: "postgres.keepalived : Restart keepalived"
