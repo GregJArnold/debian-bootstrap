@@ -10,6 +10,7 @@ debug_level=3
 cache_credentials = True
 id_provider = ldap
 auth_provider = krb5
+sudo_provider = ldap
 krb5_validate = true
 krb5_realm = {{ infra.domain.upper() }}
 access_provider = ldap
@@ -17,6 +18,7 @@ resolver_provider = none
 ldap_dns_service_name = ldaps
 ldap_schema = rfc2307bis
 ldap_search_base = {{ infra.domain.split('.') | map('regex_replace', '^(.*)$', 'dc=\\1') | join(',') }}
+ldap_sudo_search_base = ou=sudoers,{{ infra.domain.split('.') | map('regex_replace', '^(.*)$', 'dc=\\1') | join(',') }}
 enumerate = true
 ldap_user_member_of = memberof
 ldap_user_gecos = cn

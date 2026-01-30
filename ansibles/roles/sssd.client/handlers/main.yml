@@ -1,3 +1,9 @@
 - name: Update PAM config
   become: true
   ansible.builtin.shell: pam-auth-update --package
+
+- name: Restart SSSD
+  become: true
+  ansible.builtin.service:
+    name: sssd
+    state: restarted
