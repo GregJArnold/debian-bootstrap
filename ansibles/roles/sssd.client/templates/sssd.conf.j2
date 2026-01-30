@@ -1,0 +1,34 @@
+[sssd]
+services = nss, pam, ssh, sudo
+domains = {{ infra.domain }}
+
+####[nss]
+####homedir_substring = /home
+
+[domain/{{ infra.domain }}]
+debug_level=3
+cache_credentials = True
+id_provider = ldap
+auth_provider = krb5
+krb5_validate = true
+krb5_realm = {{ infra.domain.upper() }}
+access_provider = ldap
+resolver_provider = none
+ldap_dns_service_name = ldaps
+ldap_schema = rfc2307bis
+ldap_search_base = {{ infra.domain.split('.') | map('regex_replace', '^(.*)$', 'dc=\\1') | join(',') }}
+enumerate = true
+ldap_user_member_of = memberof
+ldap_user_gecos = cn
+ldap_user_uuid = nsUniqueId
+ldap_group_uuid = nsUniqueId
+ldap_account_expire_policy = rhds
+ldap_access_order = expire
+
+# Setup for ssh keys
+# Inside /etc/ssh/sshd_config add the lines:
+#   AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys
+#   AuthorizedKeysCommandUser nobody
+# You can test with the command: sss_ssh_authorizedkeys <username>
+# The objectClass: nsAccount holds this attribute.
+ldap_user_ssh_public_key = nsSshPublicKey

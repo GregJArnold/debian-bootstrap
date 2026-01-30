@@ -1,0 +1,70 @@
+- name: Install SSSD client packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - sssd-krb5
+      - sssd-ldap
+    state: present
+    install_recommends: no
+
+- name: Create sssd.conf file
+  become: true
+  ansible.builtin.template:
+    src: templates/sssd.conf.j2
+    dest: /etc/sssd/sssd.conf
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Start sssd
+  become: true
+  ansible.builtin.service:
+    name: sssd
+    state: started
+
+- name: Starch nss-pgsql.conf file
+  become: true
+  ansible.builtin.file:
+    path: /etc/nss-pgsql.conf
+    state: absent
+
+- name: Starch nsswitch passwd
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/nsswitch.conf
+    state: present
+    regexp: '^(\s*passwd:\s*.*)\s+pgsql(\s+.*)$'
+    line: '\1\2'
+    backrefs: yes
+
+- name: Starch nsswitch group
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/nsswitch.conf
+    state: present
+    regexp: '^(\s*group:\s*.*)\s+pgsql(\s+.*)$'
+    line: '\1\2'
+    backrefs: yes
+
+- name: Starch pam_pgsql.conf file
+  become: true
+  ansible.builtin.file:
+    path: /etc/pam_pgsql.conf
+    state: absent
+
+- name: Starch old packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - libpam-pgsql
+      - libnss-pgsql2
+      - libpam-krb5
+    state: absent
+    purge: true
+
+- name: Starch PG PAM config file
+  become: true
+  ansible.builtin.file:
+    path: /usr/share/pam-configs/pgsql
+    state: absent
+  notify: "sssd.client : Update PAM config"
