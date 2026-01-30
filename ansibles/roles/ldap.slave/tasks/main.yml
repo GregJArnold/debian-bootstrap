@@ -1,0 +1,148 @@
+- name: Install 389-ds-base package
+  become: true
+  ansible.builtin.apt:
+    name: 389-ds-base
+    state: present
+    install_recommends: no
+
+- name: Check if Directory Server instance exists
+  become: true
+  stat:
+    path: "/etc/dirsrv/slapd-{{ infra.ldap.name }}"
+  register: slapd_instance_dir
+
+- name: Create temporary instance.inf file
+  become: true
+  ansible.builtin.copy:
+    content: |
+      [general]
+      config_version = 2
+
+      [slapd]
+      instance_name = {{ infra.ldap.name }}
+      port = 0
+      root_password = {{ infra.ldap.password }}
+      self_sign_cert = False
+      start = False
+
+      [backend-userroot]
+      suffix = {{ infra.domain.split('.') | map('regex_replace', '^(.*)$', 'dc=\1') | join(',') }}
+      sample_entries = no
+      create_suffix_entry = True
+    dest: /tmp/dscreate-instance.inf
+    mode: "0600"
+  when: not slapd_instance_dir.stat.exists
+
+- name: Create directory server instance
+  become: true
+  ansible.builtin.command: dscreate from-file /tmp/dscreate-instance.inf
+  register: dscreate_result
+  when: not slapd_instance_dir.stat.exists
+
+- name: Remove temporary instance.inf file
+  become: true
+  ansible.builtin.file:
+    path: /tmp/dscreate-instance.inf
+    state: absent
+  when: not slapd_instance_dir.stat.exists
+
+- name: Create .dsrc file
+  become: true
+  ansible.builtin.template:
+    src: templates/dsrc.j2
+    dest: /root/.dsrc
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Check if certbot is installed
+  become: true
+  ansible.builtin.stat:
+    path: /etc/letsencrypt
+  register: letsencrypt_dir
+
+- name: Copy certbot post-renewal hook
+  become: true
+  ansible.builtin.template:
+    src: templates/certbot-post-renewal-hook.sh.j2
+    dest: /etc/letsencrypt/renewal-hooks/post/ldap-dirsrv-restart.sh
+    mode: "0755"
+    owner: root
+    group: root
+  when: letsencrypt_dir.stat.exists
+
+- name: Check if nsslapd-security is enabled
+  become: true
+  ansible.builtin.shell: "grep '^nsslapd-security: on' /etc/dirsrv/slapd-{{ infra.ldap.name }}/dse.ldif"
+  register: nsslapd_security_on
+  failed_when: false
+  changed_when: false
+
+- name: Import CA certificate
+  become: true
+  ansible.builtin.command: >
+    certutil
+      -A
+      -d /etc/dirsrv/slapd-{{ infra.ldap.name }}/
+      -n ca_cert
+      -t C,,
+      -i /etc/letsencrypt/live/{{ ansible_fqdn }}/chain.pem
+      -f /etc/dirsrv/slapd-{{ infra.ldap.name }}/pwdfile.txt
+  when: nsslapd_security_on.rc != 0
+  notify: "ldap.slave : Restart LDAP server"
+
+- name: Build P12 file
+  become: true
+  ansible.builtin.command: >
+    openssl pkcs12
+      -export
+      -in /etc/letsencrypt/live/{{ ansible_fqdn }}/cert.pem
+      -inkey /etc/letsencrypt/live/{{ ansible_fqdn }}/privkey.pem
+      -name {{ ansible_fqdn }}
+      -out /etc/dirsrv/slapd-{{ infra.ldap.name }}/{{ ansible_fqdn }}.p12
+      -password pass:
+  when: nsslapd_security_on.rc != 0
+  notify: "ldap.slave : Restart LDAP server"
+
+- name: Import P12 file
+  become: true
+  ansible.builtin.command: >
+    pk12util
+      -d /etc/dirsrv/slapd-{{ infra.ldap.name }}/
+      -i /etc/dirsrv/slapd-{{ infra.ldap.name }}/{{ ansible_fqdn }}.p12
+      -k /etc/dirsrv/slapd-{{ infra.ldap.name }}/pwdfile.txt
+      -W ""
+  when: nsslapd_security_on.rc != 0
+  notify: "ldap.slave : Restart LDAP server"
+
+- name: Add CA certificate to LDAP server
+  become: true
+  ansible.builtin.command: >
+    dsconf {{ infra.ldap.name }} security ca-certificate add --file {{ ca_cert }} --name "ISRG"
+  when: nsslapd_security_on.rc != 0
+  notify: "ldap.slave : Restart LDAP server"
+
+- name: Enable LDAP security
+  become: true
+  ansible.builtin.command: >
+    dsconf {{ infra.ldap.name }} security enable --cert-name {{ ansible_fqdn }}
+  when: nsslapd_security_on.rc != 0
+  notify: "ldap.slave : Restart LDAP server"
+
+- name: Remove exported certificate
+  become: true
+  ansible.builtin.file:
+    path: /etc/dirsrv/slapd-{{ infra.ldap.name }}/{{ ansible_fqdn }}.p12
+    state: absent
+  when: nsslapd_security_on.rc != 0
+  notify: "ldap.slave : Restart LDAP server"
+
+- name: Add replication partner
+  become: true
+  ansible.builtin.command: >
+    dsconf {{ infra.ldap.name }} replication enable 
+      --suffix {{ infra.domain.split('.') | map('regex_replace', '^(.*)$', 'dc=\1') | join(',') }}
+      --role consumer
+      --bind-dn "cn=replication manager,cn=config"
+      --bind-passwd "{{ infra.ldap.replica_password }}"
+  when: nsslapd_security_on.rc != 0

@@ -1,0 +1,5 @@
+#!/bin/bash
+# Post-renewal hook for Let's Encrypt certificates
+# Restart Directory Server to pick up new certificates
+
+systemctl restart dirsrv@{{ infra.ldap.name }}

@@ -1,0 +1,5 @@
+- name: Restart LDAP server
+  become: true
+  ansible.builtin.service:
+    name: "dirsrv@{{ infra.ldap.name }}"
+    state: restarted

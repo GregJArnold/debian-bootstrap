@@ -1,0 +1,5 @@
+[{{ infra.ldap.name }}]
+# Note that '/' is replaced to '%%2f'.
+uri = ldapi://%%2frun%%2fslapd-{{ infra.ldap.name }}.socket
+basedn = {{ infra.domain.split('.') | map('regex_replace', '^(.*)$', 'dc=\\1') | join(',') }}
+binddn = cn=Directory Manager
