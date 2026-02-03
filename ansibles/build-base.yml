@@ -17,7 +17,9 @@
     - vim.setup
     - ssh.setup
     - role: debian.kerberos
-      when: skip_kerberos is undefined or not skip_kerberos
+      when: (skip_kerberos is undefined or not skip_kerberos) and (sssd is undefined or not sssd)
+    - role: sssd.client
+      when: sssd is defined and sssd
     - ssh.gssapi
     - role: debian.nut
       when: needs_ups is defined and needs_ups

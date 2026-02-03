@@ -18,6 +18,14 @@
     mode: "0640"
   notify: "sssd.client : Restart SSSD"
 
+- name: Remove -f from SSSD defaults
+  become: true
+  ansible.builtin.replace:
+    path: /etc/default/sssd
+    regexp: '^\s*(DAEMON_OPTS=.*)\s+-f(.*)$'
+    replace: '\1\2'
+  when: ansible_distribution == 'Devuan'
+
 - name: Start sssd
   become: true
   ansible.builtin.service:
