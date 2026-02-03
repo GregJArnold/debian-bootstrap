@@ -11,8 +11,8 @@
   ansible.builtin.lineinfile:
     regexp: '^\s*#?default_realm'
     state: present
-    line: '	default_realm = {{ infra.kerberos.realm }}'
-    insertafter: '[libdefaults]'
+    line: "	default_realm = {{ infra.kerberos.realm }}"
+    insertafter: "[libdefaults]"
     path: /etc/krb5.conf
 
 - name: Install Postgres PAM package
@@ -32,7 +32,7 @@
     dest: "/etc/{{ item }}"
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
   loop:
     - nss-pgsql.conf
     - pam_pgsql.conf
@@ -40,7 +40,7 @@
 - name: Pull users from /etc/group
   become: true
   ansible.builtin.lineinfile:
-    regexp: '^users:'
+    regexp: "^users:"
     state: absent
     path: /etc/group
 
@@ -70,7 +70,7 @@
     state: present
     regexp: '^%linuxadmin\s+ALL='
     insertafter: '^%sudo\s+ALL='
-    line: '%linuxadmin  ALL=(ALL:ALL) NOPASSWD:ALL'
+    line: "%linuxadmin  ALL=(ALL:ALL) NOPASSWD:ALL"
     validate: /usr/sbin/visudo -cf %s
 
 - name: Install PAM config file
@@ -78,16 +78,7 @@
   ansible.builtin.copy:
     src: ./pgsql
     dest: /usr/share/pam-configs
-    mode: '0644'
+    mode: "0644"
     owner: root
     group: root
   notify: "debian.kerberos : Update PAM config"
-
-- name: Enable GSSAPI Authentication
-  become: true
-  ansible.builtin.lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: 'GSSAPIAuthentication'
-    line: GSSAPIAuthentication yes
-    insertbefore: 'GSSAPI'
-  notify: "debian.kerberos : Restart sshd"

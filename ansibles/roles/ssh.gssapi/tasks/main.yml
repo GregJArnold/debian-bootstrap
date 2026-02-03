@@ -1,0 +1,14 @@
+- name: Install SSH GSSAPI package
+  become: true
+  ansible.builtin.apt:
+    pkg: openssh-server-gssapi
+    install_recommends: no
+
+- name: Enable GSSAPI Authentication
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "GSSAPIAuthentication"
+    line: GSSAPIAuthentication yes
+    insertbefore: "GSSAPI"
+  notify: "debian.kerberos : Restart sshd"

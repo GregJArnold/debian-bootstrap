@@ -1,9 +1,3 @@
 - name: Update PAM config
   become: true
   ansible.builtin.shell: pam-auth-update --package
-
-- name: Restart sshd
-  become: true
-  ansible.builtin.service:
-    name: ssh
-    state: restarted

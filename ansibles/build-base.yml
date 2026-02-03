@@ -18,5 +18,6 @@
     - ssh.setup
     - role: debian.kerberos
       when: skip_kerberos is undefined or not skip_kerberos
+    - ssh.gssapi
     - role: debian.nut
       when: needs_ups is defined and needs_ups
