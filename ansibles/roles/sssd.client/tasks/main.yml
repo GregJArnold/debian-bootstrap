@@ -15,7 +15,7 @@
     dest: /etc/sssd/sssd.conf
     owner: root
     group: root
-    mode: "0640"
+    mode: "0600"
   notify: "sssd.client : Restart SSSD"
 
 - name: Remove -f from SSSD defaults
@@ -32,11 +32,16 @@
     name: sssd
     state: started
 
-- name: Starch nss-pgsql.conf file
+- name: Starch PG PAM config file
   become: true
   ansible.builtin.file:
-    path: /etc/nss-pgsql.conf
+    path: /usr/share/pam-configs/pgsql
     state: absent
+  notify: "sssd.client : Update PAM config"
+
+- name: Flush handlers
+  become: true
+  ansible.builtin.meta: flush_handlers
 
 - name: Starch nsswitch passwd
   become: true
@@ -56,12 +61,6 @@
     line: '\1\2'
     backrefs: yes
 
-- name: Starch pam_pgsql.conf file
-  become: true
-  ansible.builtin.file:
-    path: /etc/pam_pgsql.conf
-    state: absent
-
 - name: Starch old packages
   become: true
   ansible.builtin.apt:
@@ -72,9 +71,14 @@
     state: absent
     purge: true
 
-- name: Starch PG PAM config file
+- name: Starch nss-pgsql.conf file
   become: true
   ansible.builtin.file:
-    path: /usr/share/pam-configs/pgsql
+    path: /etc/nss-pgsql.conf
     state: absent
-  notify: "sssd.client : Update PAM config"
+
+- name: Starch pam_pgsql.conf file
+  become: true
+  ansible.builtin.file:
+    path: /etc/pam_pgsql.conf
+    state: absent

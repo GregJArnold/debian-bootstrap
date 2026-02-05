@@ -7,6 +7,7 @@ domains = {{ infra.domain }}
 
 [domain/{{ infra.domain }}]
 debug_level=3
+ldap_tls_cacert = /etc/ssl/certs/ca-certificates.crt
 cache_credentials = True
 id_provider = ldap
 auth_provider = krb5
