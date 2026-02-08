@@ -2,4 +2,45 @@
 # Post-renewal hook for Let's Encrypt certificates
 # Restart Directory Server to pick up new certificates
 
-systemctl restart dirsrv@{{ infra.ldap.name }}
+DOMAIN="{{ ansible_fqdn }}"
+REALM="{{ infra.ldap.name }}"
+
+[[ "$RENEWED_DOMAINS" == *"$DOMAIN"* ]] || exit 0
+
+openssl pkcs12 \
+	-export \
+	-in /etc/letsencrypt/live/${DOMAIN}/cert.pem \
+	-inkey /etc/letsencrypt/live/${DOMAIN}/privkey.pem \
+	-name ${DOMAIN} \
+	-out /etc/dirsrv/slapd-${REALM}/${DOMAIN}.p12 \
+	-password pass:
+
+certutil \
+	-D \
+	-n ${DOMAIN} \
+	-d /etc/dirsrv/slapd-${REALM}/ \
+	-f /etc/dirsrv/slapd-${REALM}/pwdfile.txt
+
+pk12util \
+	-d /etc/dirsrv/slapd-${REALM}/ \
+	-i /etc/dirsrv/slapd-${REALM}/${DOMAIN}.p12 \
+	-k /etc/dirsrv/slapd-${REALM}/pwdfile.txt \
+	-W ""
+
+certutil \
+	-D \
+	-n ca_cert \
+	-d /etc/dirsrv/slapd-${REALM}/ \
+	-f /etc/dirsrv/slapd-${REALM}/pwdfile.txt
+
+certutil \
+	-A \
+	-n ca_cert \
+	-d /etc/dirsrv/slapd-${REALM}/ \
+	-t C,, \
+	-i /etc/letsencrypt/live/${DOMAIN}/chain.pem \
+	-f /etc/dirsrv/slapd-${REALM}/pwdfile.txt
+
+rm /etc/dirsrv/slapd-${REALM}/${DOMAIN}.p12
+
+systemctl restart dirsrv@${REALM}
