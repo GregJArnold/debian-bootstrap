@@ -1,0 +1,28 @@
+<IfModule mod_ssl.c>
+<VirtualHost *:443>
+    ServerName {{ apache_site_primary }}
+{% for alias in apache_site_aliases %}
+    ServerAlias {{ alias }}
+{% endfor %}
+ 
+	ErrorLog /var/log/apache2/{{ apache_site_primary }}-error.log
+	LogLevel warn
+	CustomLog /var/log/apache2/{{ apache_site_primary }}-access.log combined
+ 
+    DocumentRoot /var/www/{{ site.dir }}
+
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/{{ apache_site_primary }}/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/{{ apache_site_primary }}/privkey.pem
+
+    <Directory /var/www/{{ site.dir }}>
+        Options Indexes FollowSymLinks
+        AllowOverride None
+        Require all granted
+{% if site.spa | default(false) %}
+        # SPA: client-side routes — serve index.html for paths with no matching file
+        FallbackResource /index.html
+{% endif %}
+    </Directory>
+</VirtualHost>
+</IfModule>

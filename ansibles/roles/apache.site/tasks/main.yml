@@ -1,0 +1,131 @@
+---
+- name: Install Apache and certbot
+  become: true
+  ansible.builtin.apt:
+    name:
+      - apache2
+      - certbot
+    state: present
+    install_recommends: false
+    update_cache: false
+
+- name: Normalize site to list
+  ansible.builtin.set_fact:
+    _site_list: "{{ [site.site] if (site.site | type_debug) == 'str' else site.site }}"
+
+- name: Set primary server name and aliases
+  ansible.builtin.set_fact:
+    apache_site_primary: "{{ _site_list | first }}"
+    apache_site_aliases: "{{ _site_list[1:] }}"
+
+- name: Ensure required Apache modules
+  become: true
+  community.general.apache2_module:
+    state: present
+    name: "{{ item }}"
+  loop:
+    - ssl
+  notify: "apache.site : Restart apache"
+
+- name: Ensure document root exists
+  become: true
+  ansible.builtin.file:
+    path: "/var/www/{{ site.dir }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: "0755"
+
+- name: Check for Let's Encrypt certificate (primary name)
+  become: true
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ apache_site_primary }}/fullchain.pem"
+  register: apache_site_le_cert
+
+- name: Deploy temporary HTTP vhost for certificate issuance
+  become: true
+  ansible.builtin.template:
+    src: apache-site-http-bootstrap.conf.j2
+    dest: "/etc/apache2/sites-available/{{ apache_site_primary }}.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  when: not apache_site_le_cert.stat.exists
+  notify: "apache.site : Restart apache"
+
+- name: Enable HTTP site for bootstrap
+  become: true
+  ansible.builtin.command:
+    cmd: "a2ensite {{ apache_site_primary }}"
+  register: apache_site_a2en_bootstrap
+  changed_when: "'Enabling site' in (apache_site_a2en_bootstrap.stdout | default('') + apache_site_a2en_bootstrap.stderr | default(''))"
+  when: not apache_site_le_cert.stat.exists
+
+- name: Disable SSL vhost for this site if present (bootstrap)
+  become: true
+  ansible.builtin.command:
+    cmd: "a2dissite {{ apache_site_primary }}-ssl"
+  register: apache_site_a2dis_ssl
+  changed_when: >-
+    'disabled' in (apache_site_a2dis_ssl.stdout | default('') + apache_site_a2dis_ssl.stderr | default(''))
+    and 'already disabled' not in (apache_site_a2dis_ssl.stdout | default('') + apache_site_a2dis_ssl.stderr | default(''))
+  failed_when: false
+  when: not apache_site_le_cert.stat.exists
+
+- name: Apply Apache restart before certbot
+  ansible.builtin.meta: flush_handlers
+  when: not apache_site_le_cert.stat.exists
+
+- name: Build certbot -d arguments
+  ansible.builtin.set_fact:
+    _certbot_d_flags: "{{ _certbot_d_flags | default([]) + ['-d', item] }}"
+  loop: "{{ [apache_site_primary] + apache_site_aliases }}"
+  when: not apache_site_le_cert.stat.exists
+
+- name: Obtain Let's Encrypt certificate (webroot)
+  become: true
+  ansible.builtin.command:
+    argv: "{{ ['certbot', 'certonly', '--webroot', '-w', '/var/www/' ~ site.dir, '--non-interactive', '--agree-tos', '--email', infra.web.certEmail] + (_certbot_d_flags | default([])) }}"
+  args:
+    creates: "/etc/letsencrypt/live/{{ apache_site_primary }}/fullchain.pem"
+  register: apache_site_certbot
+  when: not apache_site_le_cert.stat.exists
+  changed_when: not apache_site_certbot.skipped | default(false)
+  failed_when: not apache_site_certbot.skipped | default(false) and apache_site_certbot.rc != 0
+  notify: "apache.site : Restart apache"
+
+- name: Deploy HTTP vhost (redirect to HTTPS)
+  become: true
+  ansible.builtin.template:
+    src: apache-site-http-redirect.conf.j2
+    dest: "/etc/apache2/sites-available/{{ apache_site_primary }}.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: "apache.site : Restart apache"
+
+- name: Deploy HTTPS vhost
+  become: true
+  ansible.builtin.template:
+    src: apache-site-ssl.conf.j2
+    dest: "/etc/apache2/sites-available/{{ apache_site_primary }}-ssl.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: "apache.site : Restart apache"
+
+- name: Enable HTTP site
+  become: true
+  ansible.builtin.command:
+    cmd: "a2ensite {{ apache_site_primary }}"
+  register: apache_site_a2en_http
+  changed_when: "'Enabling site' in (apache_site_a2en_http.stdout | default('') + apache_site_a2en_http.stderr | default(''))"
+  notify: "apache.site : Restart apache"
+
+- name: Enable HTTPS site
+  become: true
+  ansible.builtin.command:
+    cmd: "a2ensite {{ apache_site_primary }}-ssl"
+  register: apache_site_a2en_https
+  changed_when: "'Enabling site' in (apache_site_a2en_https.stdout | default('') + apache_site_a2en_https.stderr | default(''))"
+  notify: "apache.site : Restart apache"

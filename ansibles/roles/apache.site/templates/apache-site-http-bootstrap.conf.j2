@@ -1,0 +1,18 @@
+<VirtualHost *:80>
+    ServerName {{ apache_site_primary }}
+{% for alias in apache_site_aliases %}
+    ServerAlias {{ alias }}
+{% endfor %}
+    
+	LogLevel warn
+	ErrorLog /var/log/apache2/{{ apache_site_primary }}-error.log
+	CustomLog /var/log/apache2/{{ apache_site_primary }}-access.log combined
+
+    DocumentRoot /var/www/{{ site.dir }}
+
+    <Directory /var/www/{{ site.dir }}>
+        Options Indexes FollowSymLinks
+        AllowOverride None
+        Require all granted
+    </Directory>
+</VirtualHost>
