@@ -37,11 +37,41 @@
     - postgres.slave
     - postgres.keepalived
     - kerberos.slave
+    - ldap.slave
+
+- name: Set up PostgresQL
+  hosts: postgres
+  roles:
+    - debian.postgres
+    - backup.pbsclient
+    - backup.postgres
+
+- name: Set up Redis (Valkey) Server
+  hosts: valkey
+  roles:
+    - valkey.server
 
 - name: Set up web server
   hosts: web
   roles:
     - apache.server
+
+- name: Configure Apache sites
+  hosts: web
+  tasks:
+    - name: Set up site
+      ansible.builtin.include_role:
+        name: apache.site
+      vars:
+        site: "{{ site }}"
+      loop: "{{ infra.web.sites[inventory_hostname] }}"
+      loop_control:
+        label: "{{ site.dir }} -> {{ site.site }}"
+        loop_var: site
+      when:
+        - infra.web.sites is defined
+        - inventory_hostname in infra.web.sites
+        - infra.web.sites[inventory_hostname] | length > 0
 
 - name: Set up fax server
   hosts: fax
