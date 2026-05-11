@@ -25,7 +25,7 @@
   ansible.builtin.shell: openssl dhparam -out /etc/postfix/dh2048.pem 2048
   args:
     creates: /etc/postfix/dh2048.pem
- 
+
 - name: Configure Postfix
   become: true
   ansible.builtin.template:
@@ -49,7 +49,7 @@
 
 - name: Build maps
   become: true
-  ansible.builtin.shell: "postmap {{ item.dest }}"
+  ansible.builtin.shell: "postmap {{ item.src | basename }}"
   args:
     chdir: /etc/postfix
   when: item.changed
