@@ -29,9 +29,4 @@
     mode: 0644
     owner: root
     group: root
-
-- name: Restart chrony
-  become: true
-  ansible.builtin.service:
-    name: chrony
-    state: restarted  
+  notify: "debian.ptp_time : Restart chrony"
