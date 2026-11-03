@@ -33,14 +33,38 @@ certutil \
 	-d /etc/dirsrv/slapd-${REALM}/ \
 	-f /etc/dirsrv/slapd-${REALM}/pwdfile.txt
 
+wget -q -O /tmp/root-ye-by-x2.pem \
+	https://letsencrypt.org/certs/gen-y/root-ye-by-x2.pem
+
+cat \
+	/etc/letsencrypt/live/${DOMAIN}/chain.pem \
+	/tmp/root-ye-by-x2.pem \
+	> /tmp/${DOMAIN}-chain.pem
+
 certutil \
 	-A \
 	-n ca_cert \
 	-d /etc/dirsrv/slapd-${REALM}/ \
 	-t C,, \
-	-i /etc/letsencrypt/live/${DOMAIN}/chain.pem \
+	-i /tmp/${DOMAIN}-chain.pem \
+	-f /etc/dirsrv/slapd-${REALM}/pwdfile.txt
+
+certutil \
+	-D \
+	-n "Root YE" \
+	-d /etc/dirsrv/slapd-${REALM}/ \
+	-f /etc/dirsrv/slapd-${REALM}/pwdfile.txt
+
+certutil \
+	-A \
+	-n "Root YE" \
+	-d /etc/dirsrv/slapd-${REALM}/ \
+	-t C,, \
+	-i /tmp/root-ye-by-x2.pem \
 	-f /etc/dirsrv/slapd-${REALM}/pwdfile.txt
 
 rm /etc/dirsrv/slapd-${REALM}/${DOMAIN}.p12
+rm /tmp/root-ye-by-x2.pem
+rm /tmp/${DOMAIN}-chain.pem
 
 systemctl restart dirsrv@${REALM}
