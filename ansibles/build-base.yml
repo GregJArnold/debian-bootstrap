@@ -5,7 +5,7 @@
     - gai.private
     - debian.nocd
     - role: apt-cache.proxy
-      when: (no_apt_aproxy is defined and no_apt_proxy)
+      when: no_apt_proxy is undefined or not no_apt_proxy
     - debian.base
     - role: debian.notime
       when: (is_ntp is undefined or not is_ntp) and (is_ct is defined and is_ct)
