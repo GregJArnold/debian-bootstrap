@@ -1,0 +1,20 @@
+- name: Add trixie-backports
+  become: true
+  ansible.builtin.deb822_repository:
+    name: debian-backports
+    uris: http://deb.debian.org/debian
+    suites: trixie-backports
+    components: main
+    signed_by: /usr/share/keyrings/debian-archive-keyring.gpg
+
+- name: Update apt cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Install Linux 7 kernel
+  become: true
+  ansible.builtin.apt:
+    pkg: linux-image-amd64
+    state: latest
+    default_release: trixie-backports
